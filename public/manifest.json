@@ -1,7 +1,7 @@
 {
-	"name": "J&J Hub",
-	"short_name": "J&J Hub",
-	"description": "Jonah & Julian's work hub",
+	"name": "JAPJU",
+	"short_name": "JAPJU",
+	"description": "a home for you",
 	"start_url": "/",
 	"display": "standalone",
 	"background_color": "#ffffff",

@@ -18,9 +18,9 @@ export function Login() {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-muted/30">
 			<div className="w-full max-w-sm border border-border rounded-lg bg-card p-6 shadow-sm">
-				<h1 className="text-2xl font-bold text-center mb-1">J&J Hub</h1>
-				<p className="text-sm text-muted-foreground text-center mb-6">
-					Sign in to manage your projects
+				<h1 className="text-3xl font-bold text-center mb-1">JAPJU</h1>
+				<p className="text-sm text-muted-foreground text-center italic mb-6">
+					a home for you
 				</p>
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div>

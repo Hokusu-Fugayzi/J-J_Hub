@@ -69,8 +69,9 @@ export function Layout() {
 			{/* Desktop sidebar */}
 			<aside className="hidden md:flex w-56 border-r border-border bg-muted/40 flex-col">
 				<div className="p-4 border-b border-border">
-					<h1 className="text-lg font-bold tracking-tight">J&J Hub</h1>
-					<p className="text-xs text-muted-foreground">
+					<h1 className="text-lg font-bold tracking-tight">JAPJU</h1>
+					<p className="text-xs text-muted-foreground italic">a home for you</p>
+					<p className="text-xs text-muted-foreground mt-0.5">
 						{capitalize(user!)} is logged in
 					</p>
 				</div>
@@ -119,7 +120,7 @@ export function Layout() {
 			{/* Mobile header */}
 			<div className="flex flex-col flex-1 min-h-0">
 				<header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background">
-					<h1 className="text-lg font-bold tracking-tight">J&J Hub</h1>
+					<h1 className="text-lg font-bold tracking-tight">JAPJU</h1>
 					<button
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 						className="p-2 rounded-md hover:bg-accent"
@@ -207,7 +208,7 @@ export function Layout() {
 				</main>
 
 				{/* Mobile bottom nav */}
-				<nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border safe-bottom z-40">
+				<nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-40" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
 					<div className="flex items-center justify-around py-2">
 						{mobileNav.map(({ to, icon: Icon, label }) => (
 							<NavLink
@@ -215,7 +216,7 @@ export function Layout() {
 								to={to}
 								end={to === "/"}
 								className={({ isActive }) =>
-									`flex flex-col items-center gap-0.5 px-3 py-1 rounded-md text-xs transition-colors ${
+									`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-md text-xs transition-colors min-w-[44px] min-h-[44px] justify-center ${
 										isActive
 											? "text-primary font-semibold"
 											: "text-muted-foreground"
