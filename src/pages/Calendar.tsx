@@ -75,7 +75,12 @@ export function Calendar() {
 	const goToday = () => setCurrentDate(new Date());
 
 	const eventsForDate = (dateStr: string) =>
-		events.filter((e) => e.date === dateStr);
+		events.filter((e) => {
+			if (e.end_date) {
+				return dateStr >= e.date && dateStr <= e.end_date;
+			}
+			return e.date === dateStr;
+		});
 
 	const tasksForDate = (dateStr: string) =>
 		tasks.filter((t) => t.due_date === dateStr);
@@ -433,8 +438,10 @@ function DayDetail({
 							<div>
 								<p className="text-sm font-medium">{ev.title}</p>
 								<p className="text-xs text-muted-foreground">
-									{ev.start_time} &middot; {ev.duration_minutes}min &middot;{" "}
-									{capitalize(ev.assigned_to)} &middot; {ev.category}
+									{ev.end_date
+										? `${ev.date} → ${ev.end_date}`
+										: `${ev.start_time} · ${ev.duration_minutes}min`}
+									{" "}&middot; {capitalize(ev.assigned_to)} &middot; {ev.category}
 								</p>
 							</div>
 						</div>
@@ -492,6 +499,7 @@ function EventForm({
 	const [title, setTitle] = useState(event?.title || "");
 	const [description, setDescription] = useState(event?.description || "");
 	const [date, setDate] = useState(event?.date || defaultDate);
+	const [endDate, setEndDate] = useState(event?.end_date || "");
 	const [startTime, setStartTime] = useState(event?.start_time || "09:00");
 	const [duration, setDuration] = useState(
 		String(event?.duration_minutes || 60),
@@ -503,6 +511,7 @@ function EventForm({
 	const [category, setCategory] = useState(event?.category || "meeting");
 	const [projectId, setProjectId] = useState(event?.project_id || "");
 	const [saving, setSaving] = useState(false);
+	const isMultiDay = category === "travel" || !!endDate;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -511,8 +520,9 @@ function EventForm({
 			title,
 			description,
 			date,
-			start_time: startTime,
-			duration_minutes: Number(duration),
+			end_date: endDate || null,
+			start_time: isMultiDay ? "00:00" : startTime,
+			duration_minutes: isMultiDay ? 0 : Number(duration),
 			assigned_to: assignedTo as CalendarEvent["assigned_to"],
 			color: color as CalendarEvent["color"],
 			category: category as CalendarEvent["category"],
@@ -555,31 +565,54 @@ function EventForm({
 				rows={2}
 				className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
 			/>
-			<div className="flex gap-3">
-				<input
-					type="date"
-					value={date}
-					onChange={(e) => setDate(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
-				/>
-				<input
-					type="time"
-					value={startTime}
-					onChange={(e) => setStartTime(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
-				/>
-				<select
-					value={duration}
-					onChange={(e) => setDuration(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
-				>
-					<option value="15">15 min</option>
-					<option value="30">30 min</option>
-					<option value="45">45 min</option>
-					<option value="60">1 hour</option>
-					<option value="90">1.5 hours</option>
-					<option value="120">2 hours</option>
-				</select>
+			<div className="flex gap-3 flex-wrap">
+				<div>
+					<label className="text-xs text-muted-foreground">Start date</label>
+					<input
+						type="date"
+						value={date}
+						onChange={(e) => setDate(e.target.value)}
+						className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+					/>
+				</div>
+				<div>
+					<label className="text-xs text-muted-foreground">End date (multi-day)</label>
+					<input
+						type="date"
+						value={endDate}
+						onChange={(e) => setEndDate(e.target.value)}
+						min={date}
+						className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+					/>
+				</div>
+				{!isMultiDay && (
+					<>
+						<div>
+							<label className="text-xs text-muted-foreground">Time</label>
+							<input
+								type="time"
+								value={startTime}
+								onChange={(e) => setStartTime(e.target.value)}
+								className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+							/>
+						</div>
+						<div>
+							<label className="text-xs text-muted-foreground">Duration</label>
+							<select
+								value={duration}
+								onChange={(e) => setDuration(e.target.value)}
+								className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+							>
+								<option value="15">15 min</option>
+								<option value="30">30 min</option>
+								<option value="45">45 min</option>
+								<option value="60">1 hour</option>
+								<option value="90">1.5 hours</option>
+								<option value="120">2 hours</option>
+							</select>
+						</div>
+					</>
+				)}
 			</div>
 			<div className="flex gap-3">
 				<select
@@ -591,6 +624,7 @@ function EventForm({
 					<option value="deadline">Deadline</option>
 					<option value="reminder">Reminder</option>
 					<option value="social">Social</option>
+					<option value="travel">Travel</option>
 					<option value="other">Other</option>
 				</select>
 				<select

@@ -41,11 +41,12 @@ export interface CalendarEvent {
 	title: string;
 	description: string;
 	date: string;
+	end_date: string | null;
 	start_time: string;
 	duration_minutes: number;
 	assigned_to: User | "both";
 	color: "blue" | "green" | "purple" | "orange" | "red" | "pink";
-	category: "meeting" | "deadline" | "reminder" | "social" | "other";
+	category: "meeting" | "deadline" | "reminder" | "social" | "travel" | "other";
 	project_id: string | null;
 	created_at: string;
 	updated_at: string;
