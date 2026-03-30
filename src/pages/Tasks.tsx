@@ -5,10 +5,11 @@ import {
 	updateTask,
 	deleteTask,
 	getProjects,
+	getSprints,
 } from "@/lib/data";
 import { capitalize, timeAgo } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
-import type { Task, Project } from "@/types";
+import type { Task, Project, Sprint } from "@/types";
 import { Plus, Trash2, X, Circle, Loader2, CheckCircle2 } from "lucide-react";
 
 const STATUS_CYCLE: Task["status"][] = ["todo", "in-progress", "done"];
@@ -17,16 +18,18 @@ export function Tasks() {
 	const { user } = useAuth();
 	const [tasks, setTasks] = useState<Task[]>([]);
 	const [projects, setProjects] = useState<Project[]>([]);
+	const [sprints, setSprints] = useState<Sprint[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showForm, setShowForm] = useState(false);
 	const [filterStatus, setFilterStatus] = useState<string>("all");
 	const [filterAssigned, setFilterAssigned] = useState<string>("all");
 
 	const load = () => {
-		Promise.all([getTasks(), getProjects()])
-			.then(([t, p]) => {
+		Promise.all([getTasks(), getProjects(), getSprints()])
+			.then(([t, p, s]) => {
 				setTasks(t);
 				setProjects(p);
+				setSprints(s);
 			})
 			.finally(() => setLoading(false));
 	};
@@ -112,6 +115,7 @@ export function Tasks() {
 			{showForm && (
 				<TaskForm
 					projects={projects}
+					sprints={sprints}
 					currentUser={user!}
 					onSave={() => {
 						setShowForm(false);
@@ -183,11 +187,13 @@ export function Tasks() {
 
 function TaskForm({
 	projects,
+	sprints,
 	currentUser,
 	onSave,
 	onCancel,
 }: {
 	projects: Project[];
+	sprints: Sprint[];
 	currentUser: string;
 	onSave: () => void;
 	onCancel: () => void;
@@ -195,8 +201,10 @@ function TaskForm({
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [projectId, setProjectId] = useState("");
+	const [sprintId, setSprintId] = useState("");
 	const [priority, setPriority] = useState("medium");
 	const [assignedTo, setAssignedTo] = useState(currentUser);
+	const [dueDate, setDueDate] = useState("");
 	const [saving, setSaving] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -206,10 +214,11 @@ function TaskForm({
 			title,
 			description,
 			project_id: projectId || null,
+			sprint_id: sprintId || null,
 			status: "todo",
 			priority: priority as Task["priority"],
 			assigned_to: assignedTo as Task["assigned_to"],
-			due_date: null,
+			due_date: dueDate || null,
 		});
 		onSave();
 	};
@@ -239,7 +248,7 @@ function TaskForm({
 				rows={2}
 				className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
 			/>
-			<div className="flex gap-3">
+			<div className="flex gap-3 flex-wrap">
 				<select
 					value={projectId}
 					onChange={(e) => setProjectId(e.target.value)}
@@ -249,6 +258,18 @@ function TaskForm({
 					{projects.map((p) => (
 						<option key={p.id} value={p.id}>
 							{p.name}
+						</option>
+					))}
+				</select>
+				<select
+					value={sprintId}
+					onChange={(e) => setSprintId(e.target.value)}
+					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+				>
+					<option value="">No sprint</option>
+					{sprints.map((s) => (
+						<option key={s.id} value={s.id}>
+							{s.name}
 						</option>
 					))}
 				</select>
@@ -270,6 +291,13 @@ function TaskForm({
 					<option value="julian">Julian</option>
 					<option value="both">Both</option>
 				</select>
+				<input
+					type="date"
+					value={dueDate}
+					onChange={(e) => setDueDate(e.target.value)}
+					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					title="Due date"
+				/>
 			</div>
 			<div className="flex gap-2 justify-end">
 				<button

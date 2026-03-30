@@ -3,17 +3,49 @@ import { useAuth } from "@/lib/auth";
 import { capitalize } from "@/lib/utils";
 import {
 	LayoutDashboard,
+	CalendarDays,
+	Newspaper,
 	FolderKanban,
-	CheckSquare,
+	Columns3,
+	Zap,
+	MessageCircle,
+	Users,
+	DollarSign,
+	GitBranch,
 	StickyNote,
 	LogOut,
 } from "lucide-react";
 
-const navItems = [
-	{ to: "/", icon: LayoutDashboard, label: "Dashboard" },
-	{ to: "/projects", icon: FolderKanban, label: "Projects" },
-	{ to: "/tasks", icon: CheckSquare, label: "Tasks" },
-	{ to: "/notes", icon: StickyNote, label: "Notes" },
+const navSections = [
+	{
+		label: "Home",
+		items: [
+			{ to: "/", icon: LayoutDashboard, label: "Dashboard" },
+			{ to: "/calendar", icon: CalendarDays, label: "Calendar" },
+			{ to: "/news", icon: Newspaper, label: "News" },
+		],
+	},
+	{
+		label: "Work",
+		items: [
+			{ to: "/projects", icon: FolderKanban, label: "Projects" },
+			{ to: "/board", icon: Columns3, label: "Board" },
+			{ to: "/sprints", icon: Zap, label: "Sprints" },
+			{ to: "/standups", icon: MessageCircle, label: "Standups" },
+		],
+	},
+	{
+		label: "CRM",
+		items: [
+			{ to: "/contacts", icon: Users, label: "Contacts" },
+			{ to: "/deals", icon: DollarSign, label: "Deals" },
+			{ to: "/pipeline", icon: GitBranch, label: "Pipeline" },
+		],
+	},
+	{
+		label: "Other",
+		items: [{ to: "/notes", icon: StickyNote, label: "Notes" }],
+	},
 ];
 
 export function Layout() {
@@ -28,23 +60,35 @@ export function Layout() {
 						{capitalize(user!)} is logged in
 					</p>
 				</div>
-				<nav className="flex-1 p-2 space-y-1">
-					{navItems.map(({ to, icon: Icon, label }) => (
-						<NavLink
-							key={to}
-							to={to}
-							end={to === "/"}
-							className={({ isActive }) =>
-								`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
-									isActive
-										? "bg-primary text-primary-foreground"
-										: "hover:bg-accent text-foreground"
-								}`
-							}
-						>
-							<Icon className="w-4 h-4" />
-							{label}
-						</NavLink>
+				<nav className="flex-1 p-2 overflow-y-auto">
+					{navSections.map((section, idx) => (
+						<div key={section.label}>
+							{idx > 0 && (
+								<div className="my-2 border-t border-border" />
+							)}
+							<p className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								{section.label}
+							</p>
+							<div className="space-y-0.5">
+								{section.items.map(({ to, icon: Icon, label }) => (
+									<NavLink
+										key={to}
+										to={to}
+										end={to === "/"}
+										className={({ isActive }) =>
+											`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+												isActive
+													? "bg-primary text-primary-foreground"
+													: "hover:bg-accent text-foreground"
+											}`
+										}
+									>
+										<Icon className="w-4 h-4" />
+										{label}
+									</NavLink>
+								))}
+							</div>
+						</div>
 					))}
 				</nav>
 				<div className="p-2 border-t border-border">

@@ -1,32 +1,58 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { getProjects, getTasks, getNotes } from "@/lib/data";
-import { capitalize, timeAgo } from "@/lib/utils";
-import type { Project, Task, Note } from "@/types";
+import {
+	getProjects,
+	getTasks,
+	getNotes,
+	getMoods,
+	setMood,
+} from "@/lib/data";
+import { capitalize, timeAgo, getGreeting, toDateString } from "@/lib/utils";
+import type { Project, Task, Note, MoodStatus } from "@/types";
 import {
 	FolderKanban,
 	CheckSquare,
 	StickyNote,
 	ArrowRight,
+	Flame,
 } from "lucide-react";
+
+const MOOD_OPTIONS = [
+	{ emoji: "\u{1F525}", label: "On fire" },
+	{ emoji: "\u{1F4AA}", label: "Crushing it" },
+	{ emoji: "\u{1F60E}", label: "Feeling good" },
+	{ emoji: "\u{1F914}", label: "Thinking" },
+	{ emoji: "\u{1F634}", label: "Tired" },
+	{ emoji: "\u{1F612}", label: "Meh" },
+];
 
 export function Dashboard() {
 	const { user } = useAuth();
 	const [projects, setProjects] = useState<Project[]>([]);
 	const [tasks, setTasks] = useState<Task[]>([]);
 	const [notes, setNotes] = useState<Note[]>([]);
+	const [moods, setMoods] = useState<MoodStatus[]>([]);
 	const [loading, setLoading] = useState(true);
 
+	const today = toDateString(new Date());
+	const { greeting, subtext } = getGreeting(user!);
+
 	useEffect(() => {
-		Promise.all([getProjects(), getTasks(), getNotes()])
-			.then(([p, t, n]) => {
+		Promise.all([getProjects(), getTasks(), getNotes(), getMoods(today)])
+			.then(([p, t, n, m]) => {
 				setProjects(p);
 				setTasks(t);
 				setNotes(n);
+				setMoods(m);
 			})
 			.finally(() => setLoading(false));
 	}, []);
+
+	const handleMood = async (emoji: string, label: string) => {
+		await setMood({ user: user!, emoji, label, date: today });
+		getMoods(today).then(setMoods);
+	};
 
 	if (loading) {
 		return (
@@ -42,16 +68,70 @@ export function Dashboard() {
 		(t) => t.assigned_to === user || t.assigned_to === "both",
 	);
 
+	const myMood = moods.find((m) => m.user === user);
+	const partnerName = user === "jonah" ? "julian" : "jonah";
+	const partnerMood = moods.find((m) => m.user === partnerName);
+
+	// Streak: consecutive days with at least one task completed
+	const completedTasks = tasks
+		.filter((t) => t.status === "done")
+		.sort(
+			(a, b) =>
+				new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+		);
+	const tasksThisWeek = completedTasks.filter((t) => {
+		const diff =
+			(new Date().getTime() - new Date(t.updated_at).getTime()) /
+			(1000 * 60 * 60 * 24);
+		return diff <= 7;
+	}).length;
+
 	return (
 		<div>
-			<h1 className="text-2xl font-bold mb-1">
-				Hey {capitalize(user!)}, welcome back
-			</h1>
-			<p className="text-muted-foreground mb-6">
-				Here's what's happening across your projects.
-			</p>
+			<div className="mb-6">
+				<h1 className="text-2xl font-bold">{greeting}</h1>
+				<p className="text-muted-foreground">{subtext}</p>
+			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+			{/* Mood check */}
+			<div className="border border-border rounded-lg p-4 mb-6">
+				<div className="flex items-center justify-between">
+					<div>
+						<p className="text-sm font-medium mb-2">How are you feeling?</p>
+						<div className="flex gap-2">
+							{MOOD_OPTIONS.map((m) => (
+								<button
+									key={m.emoji}
+									onClick={() => handleMood(m.emoji, m.label)}
+									className={`text-xl p-1.5 rounded-lg hover:bg-accent transition-colors ${myMood?.emoji === m.emoji ? "bg-accent ring-2 ring-primary" : ""}`}
+									title={m.label}
+								>
+									{m.emoji}
+								</button>
+							))}
+						</div>
+					</div>
+					<div className="text-right text-sm">
+						{myMood && (
+							<p>
+								You: {myMood.emoji} {myMood.label}
+							</p>
+						)}
+						{partnerMood ? (
+							<p className="text-muted-foreground">
+								{capitalize(partnerName)}: {partnerMood.emoji}{" "}
+								{partnerMood.label}
+							</p>
+						) : (
+							<p className="text-muted-foreground">
+								{capitalize(partnerName)} hasn't checked in yet
+							</p>
+						)}
+					</div>
+				</div>
+			</div>
+
+			<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
 				<StatCard
 					icon={FolderKanban}
 					label="Active Projects"
@@ -69,6 +149,12 @@ export function Dashboard() {
 					label="Total Notes"
 					value={notes.length}
 					href="/notes"
+				/>
+				<StatCard
+					icon={Flame}
+					label="Done This Week"
+					value={tasksThisWeek}
+					href="/board"
 				/>
 			</div>
 
