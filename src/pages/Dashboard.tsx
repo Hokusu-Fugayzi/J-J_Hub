@@ -149,7 +149,7 @@ export function Dashboard() {
 		<div>
 			{/* Big greeting */}
 			<div className="mb-6">
-				<h1 className="text-3xl md:text-4xl font-bold tracking-tight">{greeting} \u{1F44B}</h1>
+				<h1 className="text-3xl md:text-4xl font-bold tracking-tight">{greeting} {"\u{1F44B}"}</h1>
 				<p className="text-lg text-muted-foreground mt-1">{subtext}</p>
 			</div>
 
