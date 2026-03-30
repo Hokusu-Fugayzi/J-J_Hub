@@ -174,8 +174,8 @@ export function News() {
 							</div>
 						</div>
 						{expandedId === post.id && (
-							<div className="mt-3 pt-3 border-t border-border text-sm whitespace-pre-wrap">
-								{post.content || "No content"}
+							<div className="mt-3 pt-3 border-t border-border text-sm">
+								<SimpleMarkdown text={post.content || "No content"} />
 								{post.url && (
 									<a
 										href={post.url}
@@ -326,5 +326,66 @@ function PostForm({
 				</button>
 			</div>
 		</form>
+	);
+}
+
+function SimpleMarkdown({ text }: { text: string }) {
+	const lines = text.split("\n");
+	return (
+		<div className="space-y-1">
+			{lines.map((line, i) => {
+				if (!line.trim()) return <div key={i} className="h-2" />;
+
+				// Bold headers: **text**
+				let processed: React.ReactNode = line;
+				if (line.startsWith("**") && line.endsWith("**")) {
+					return (
+						<p key={i} className="font-semibold mt-2">
+							{line.slice(2, -2)}
+						</p>
+					);
+				}
+
+				// Bullet with markdown link: - [text](url)
+				if (line.startsWith("- ")) {
+					const linkMatch = line.match(/^- \[(.+?)\]\((.+?)\)$/);
+					if (linkMatch) {
+						return (
+							<div key={i} className="flex items-start gap-2 pl-2">
+								<span className="text-muted-foreground mt-0.5">-</span>
+								<a
+									href={linkMatch[2]}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-blue-600 hover:underline"
+								>
+									{linkMatch[1]}
+								</a>
+							</div>
+						);
+					}
+					// Plain bullet
+					return (
+						<div key={i} className="flex items-start gap-2 pl-2">
+							<span className="text-muted-foreground mt-0.5">-</span>
+							<span>{line.slice(2)}</span>
+						</div>
+					);
+				}
+
+				// Inline bold
+				const parts = line.split(/(\*\*.*?\*\*)/);
+				if (parts.length > 1) {
+					processed = parts.map((part, j) => {
+						if (part.startsWith("**") && part.endsWith("**")) {
+							return <strong key={j}>{part.slice(2, -2)}</strong>;
+						}
+						return part;
+					});
+				}
+
+				return <p key={i}>{processed}</p>;
+			})}
+		</div>
 	);
 }

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "api": "tsx server/index.ts",
+    "news": "tsx scripts/daily-news.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
