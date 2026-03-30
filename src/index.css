@@ -23,6 +23,10 @@
 	--radius: 0.5rem;
 }
 
+.safe-bottom {
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 body {
 	margin: 0;
 	font-family:

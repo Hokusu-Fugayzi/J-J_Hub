@@ -10,7 +10,7 @@ import {
 import { capitalize } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import type { Task, Project, Sprint } from "@/types";
-import { Plus, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2, Pencil } from "lucide-react";
 
 const COLUMNS: { status: Task["status"]; label: string; color: string }[] = [
 	{ status: "todo", label: "To Do", color: "border-t-gray-400" },
@@ -59,6 +59,7 @@ export function Board() {
 	const [filterSprint, setFilterSprint] = useState<string>("all");
 	const [draggedId, setDraggedId] = useState<string | null>(null);
 	const [addingTo, setAddingTo] = useState<Task["status"] | null>(null);
+	const [editingTask, setEditingTask] = useState<Task | null>(null);
 
 	const load = () => {
 		Promise.all([getTasks(), getProjects(), getSprints()])
@@ -74,7 +75,6 @@ export function Board() {
 		load();
 	}, []);
 
-	// Build a stable color map: project id -> color index
 	const projectColorMap = new Map<string, number>();
 	projects.forEach((p, i) => {
 		projectColorMap.set(p.id, i % PROJECT_COLORS.length);
@@ -83,17 +83,13 @@ export function Board() {
 	const getProjectColor = (projectId: string | null) => {
 		if (!projectId) return "border-l-gray-300";
 		const idx = projectColorMap.get(projectId);
-		return idx !== undefined
-			? PROJECT_COLORS[idx]
-			: "border-l-gray-300";
+		return idx !== undefined ? PROJECT_COLORS[idx] : "border-l-gray-300";
 	};
 
 	const getProjectDot = (projectId: string | null) => {
 		if (!projectId) return "bg-gray-300";
 		const idx = projectColorMap.get(projectId);
-		return idx !== undefined
-			? PROJECT_DOT_COLORS[idx]
-			: "bg-gray-300";
+		return idx !== undefined ? PROJECT_DOT_COLORS[idx] : "bg-gray-300";
 	};
 
 	const projectName = (id: string | null) =>
@@ -143,7 +139,7 @@ export function Board() {
 			<div className="flex items-center justify-between mb-4">
 				<div>
 					<h1 className="text-2xl font-bold">Board</h1>
-					<p className="text-muted-foreground text-sm">
+					<p className="text-muted-foreground text-sm hidden sm:block">
 						Drag tasks between columns
 					</p>
 				</div>
@@ -173,14 +169,29 @@ export function Board() {
 							<span className="text-muted-foreground">{p.name}</span>
 						</div>
 					))}
-					<div className="flex items-center gap-1.5">
-						<div className="w-2.5 h-2.5 rounded-full bg-gray-300" />
-						<span className="text-muted-foreground">No project</span>
-					</div>
 				</div>
 			)}
 
-			<div className="grid grid-cols-3 gap-4 min-h-[500px]">
+			{/* Edit task modal */}
+			{editingTask && (
+				<EditTaskModal
+					task={editingTask}
+					projects={projects}
+					sprints={sprints}
+					onSave={() => {
+						setEditingTask(null);
+						load();
+					}}
+					onDelete={() => {
+						handleDelete(editingTask.id);
+						setEditingTask(null);
+					}}
+					onCancel={() => setEditingTask(null)}
+				/>
+			)}
+
+			{/* Mobile: stacked columns. Desktop: 3-col grid */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[300px] md:min-h-[500px]">
 				{COLUMNS.map(({ status, label, color }) => {
 					const columnTasks = filtered.filter((t) => t.status === status);
 
@@ -229,12 +240,16 @@ export function Board() {
 										key={task.id}
 										draggable
 										onDragStart={() => handleDragStart(task.id)}
-										className={`p-3 rounded-md border border-border border-l-4 cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow group ${getProjectColor(task.project_id)} ${draggedId === task.id ? "opacity-50" : ""}`}
+										onClick={() => setEditingTask(task)}
+										className={`p-3 rounded-md border border-border border-l-4 cursor-pointer md:cursor-grab md:active:cursor-grabbing hover:shadow-sm transition-shadow group ${getProjectColor(task.project_id)} ${draggedId === task.id ? "opacity-50" : ""}`}
 									>
 										<div className="flex items-start justify-between">
 											<p className="text-sm font-medium">{task.title}</p>
 											<button
-												onClick={() => handleDelete(task.id)}
+												onClick={(e) => {
+													e.stopPropagation();
+													handleDelete(task.id);
+												}}
 												className="p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-accent transition-opacity shrink-0"
 											>
 												<Trash2 className="w-3 h-3 text-muted-foreground" />
@@ -267,6 +282,192 @@ export function Board() {
 					);
 				})}
 			</div>
+		</div>
+	);
+}
+
+function EditTaskModal({
+	task,
+	projects,
+	sprints,
+	onSave,
+	onDelete,
+	onCancel,
+}: {
+	task: Task;
+	projects: Project[];
+	sprints: Sprint[];
+	onSave: () => void;
+	onDelete: () => void;
+	onCancel: () => void;
+}) {
+	const [title, setTitle] = useState(task.title);
+	const [description, setDescription] = useState(task.description);
+	const [status, setStatus] = useState<string>(task.status);
+	const [priority, setPriority] = useState<string>(task.priority);
+	const [assignedTo, setAssignedTo] = useState<string>(task.assigned_to);
+	const [projectId, setProjectId] = useState(task.project_id || "");
+	const [sprintId, setSprintId] = useState(task.sprint_id || "");
+	const [dueDate, setDueDate] = useState(task.due_date || "");
+	const [saving, setSaving] = useState(false);
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setSaving(true);
+		try {
+			await updateTask(task.id, {
+				title,
+				description,
+				status: status as Task["status"],
+				priority: priority as Task["priority"],
+				assigned_to: assignedTo as Task["assigned_to"],
+				project_id: projectId || null,
+				sprint_id: sprintId || null,
+				due_date: dueDate || null,
+			});
+			onSave();
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	return (
+		<div
+			className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+			onClick={onCancel}
+		>
+			<form
+				onClick={(e) => e.stopPropagation()}
+				onSubmit={handleSubmit}
+				className="bg-background border border-border rounded-lg p-5 w-full max-w-md space-y-3 shadow-lg"
+			>
+				<div className="flex items-center justify-between">
+					<h3 className="font-semibold">Edit Task</h3>
+					<button type="button" onClick={onCancel} className="p-1">
+						<X className="w-4 h-4" />
+					</button>
+				</div>
+				<input
+					value={title}
+					onChange={(e) => setTitle(e.target.value)}
+					placeholder="Task title"
+					required
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+				/>
+				<textarea
+					value={description}
+					onChange={(e) => setDescription(e.target.value)}
+					placeholder="Description (optional)"
+					rows={3}
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+				/>
+				<div className="grid grid-cols-2 gap-2">
+					<div>
+						<label className="text-xs text-muted-foreground">Status</label>
+						<select
+							value={status}
+							onChange={(e) => setStatus(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+						>
+							<option value="todo">To Do</option>
+							<option value="in-progress">In Progress</option>
+							<option value="done">Done</option>
+						</select>
+					</div>
+					<div>
+						<label className="text-xs text-muted-foreground">Priority</label>
+						<select
+							value={priority}
+							onChange={(e) => setPriority(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+						>
+							<option value="low">Low</option>
+							<option value="medium">Medium</option>
+							<option value="high">High</option>
+						</select>
+					</div>
+				</div>
+				<div className="grid grid-cols-2 gap-2">
+					<div>
+						<label className="text-xs text-muted-foreground">Assigned to</label>
+						<select
+							value={assignedTo}
+							onChange={(e) => setAssignedTo(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+						>
+							<option value="jonah">Jonah</option>
+							<option value="julian">Julian</option>
+							<option value="both">Both</option>
+						</select>
+					</div>
+					<div>
+						<label className="text-xs text-muted-foreground">Due date</label>
+						<input
+							type="date"
+							value={dueDate}
+							onChange={(e) => setDueDate(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+						/>
+					</div>
+				</div>
+				<div className="grid grid-cols-2 gap-2">
+					<div>
+						<label className="text-xs text-muted-foreground">Project</label>
+						<select
+							value={projectId}
+							onChange={(e) => setProjectId(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+						>
+							<option value="">No project</option>
+							{projects.map((p) => (
+								<option key={p.id} value={p.id}>
+									{p.name}
+								</option>
+							))}
+						</select>
+					</div>
+					<div>
+						<label className="text-xs text-muted-foreground">Sprint</label>
+						<select
+							value={sprintId}
+							onChange={(e) => setSprintId(e.target.value)}
+							className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
+						>
+							<option value="">No sprint</option>
+							{sprints.map((s) => (
+								<option key={s.id} value={s.id}>
+									{s.name}
+								</option>
+							))}
+						</select>
+					</div>
+				</div>
+				<div className="flex items-center justify-between pt-2">
+					<button
+						type="button"
+						onClick={onDelete}
+						className="text-xs text-destructive hover:underline"
+					>
+						Delete task
+					</button>
+					<div className="flex gap-2">
+						<button
+							type="button"
+							onClick={onCancel}
+							className="px-3 py-1.5 text-sm rounded-md hover:bg-accent"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							disabled={saving || !title.trim()}
+							className="px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 disabled:opacity-50"
+						>
+							{saving ? "Saving..." : "Save"}
+						</button>
+					</div>
+				</div>
+			</form>
 		</div>
 	);
 }
@@ -365,18 +566,6 @@ function QuickAddTask({
 					<option value="jonah">Jonah</option>
 					<option value="julian">Julian</option>
 					<option value="both">Both</option>
-				</select>
-				<select
-					value={sprintId}
-					onChange={(e) => setSprintId(e.target.value)}
-					className="px-2 py-1 border border-input rounded text-xs bg-background"
-				>
-					<option value="">No sprint</option>
-					{sprints.map((s) => (
-						<option key={s.id} value={s.id}>
-							{s.name}
-						</option>
-					))}
 				</select>
 			</div>
 			<div className="flex justify-end">
