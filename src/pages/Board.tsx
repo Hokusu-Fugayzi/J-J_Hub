@@ -499,7 +499,7 @@ function QuickAddTask({
 				title: title.trim(),
 				description: "",
 				project_id: projectId || null,
-				sprint_id: sprintId || null,
+				sprint_id: null,
 				status,
 				priority: priority as Task["priority"],
 				assigned_to: assignedTo as Task["assigned_to"],
