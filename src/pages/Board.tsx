@@ -10,7 +10,7 @@ import {
 import { capitalize } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import type { Task, Project, Sprint } from "@/types";
-import { Plus, X, Trash2, Pencil } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
 
 const COLUMNS: { status: Task["status"]; label: string; color: string }[] = [
 	{ status: "todo", label: "To Do", color: "border-t-gray-400" },
@@ -224,7 +224,6 @@ export function Board() {
 								<QuickAddTask
 									status={status}
 									projects={projects}
-									sprints={sprints}
 									currentUser={user!}
 									onSave={() => {
 										setAddingTo(null);
@@ -475,21 +474,18 @@ function EditTaskModal({
 function QuickAddTask({
 	status,
 	projects,
-	sprints,
 	currentUser,
 	onSave,
 	onCancel,
 }: {
 	status: Task["status"];
 	projects: Project[];
-	sprints: Sprint[];
 	currentUser: string;
 	onSave: () => void;
 	onCancel: () => void;
 }) {
 	const [title, setTitle] = useState("");
 	const [projectId, setProjectId] = useState("");
-	const [sprintId, setSprintId] = useState("");
 	const [priority, setPriority] = useState("medium");
 	const [assignedTo, setAssignedTo] = useState(currentUser);
 	const [saving, setSaving] = useState(false);
