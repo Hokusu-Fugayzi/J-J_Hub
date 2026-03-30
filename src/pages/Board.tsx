@@ -57,6 +57,7 @@ export function Board() {
 	const [sprints, setSprints] = useState<Sprint[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [filterSprint, setFilterSprint] = useState<string>("all");
+	const [filterProject, setFilterProject] = useState<string>("all");
 	const [draggedId, setDraggedId] = useState<string | null>(null);
 	const [addingTo, setAddingTo] = useState<Task["status"] | null>(null);
 	const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -95,12 +96,17 @@ export function Board() {
 	const projectName = (id: string | null) =>
 		id ? projects.find((p) => p.id === id)?.name : null;
 
-	const filtered =
-		filterSprint === "all"
-			? tasks
-			: filterSprint === "none"
-				? tasks.filter((t) => !t.sprint_id)
-				: tasks.filter((t) => t.sprint_id === filterSprint);
+	const filtered = tasks.filter((t) => {
+		if (filterSprint !== "all") {
+			if (filterSprint === "none" && t.sprint_id) return false;
+			if (filterSprint !== "none" && t.sprint_id !== filterSprint) return false;
+		}
+		if (filterProject !== "all") {
+			if (filterProject === "none" && t.project_id) return false;
+			if (filterProject !== "none" && t.project_id !== filterProject) return false;
+		}
+		return true;
+	});
 
 	const handleDragStart = (taskId: string) => {
 		setDraggedId(taskId);
@@ -143,19 +149,34 @@ export function Board() {
 						Drag tasks between columns
 					</p>
 				</div>
-				<select
-					value={filterSprint}
-					onChange={(e) => setFilterSprint(e.target.value)}
-					className="px-3 py-1.5 border border-input rounded-md text-sm bg-background"
-				>
-					<option value="all">All tasks</option>
-					<option value="none">No sprint</option>
-					{sprints.map((s) => (
-						<option key={s.id} value={s.id}>
-							{s.name}
-						</option>
-					))}
-				</select>
+				<div className="flex gap-2">
+					<select
+						value={filterProject}
+						onChange={(e) => setFilterProject(e.target.value)}
+						className="px-3 py-1.5 border border-input rounded-md text-sm bg-background"
+					>
+						<option value="all">All projects</option>
+						<option value="none">No project</option>
+						{projects.map((p) => (
+							<option key={p.id} value={p.id}>
+								{p.name}
+							</option>
+						))}
+					</select>
+					<select
+						value={filterSprint}
+						onChange={(e) => setFilterSprint(e.target.value)}
+						className="px-3 py-1.5 border border-input rounded-md text-sm bg-background"
+					>
+						<option value="all">All sprints</option>
+						<option value="none">No sprint</option>
+						{sprints.map((s) => (
+							<option key={s.id} value={s.id}>
+								{s.name}
+							</option>
+						))}
+					</select>
+				</div>
 			</div>
 
 			{/* Project color legend */}
