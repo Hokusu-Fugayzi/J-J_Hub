@@ -1,3 +1,4 @@
+import { supabase, isSupabaseConfigured } from "./supabase";
 import type {
 	Project,
 	Task,
@@ -13,53 +14,59 @@ import type {
 	MoodStatus,
 } from "@/types";
 
-const API_URL = "http://localhost:3001";
-const API_KEY = "jj_dev_key_2026";
-
-async function api<T>(
-	path: string,
-	options?: { method?: string; body?: any },
-): Promise<T> {
-	const res = await fetch(`${API_URL}${path}`, {
-		method: options?.method || "GET",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${API_KEY}`,
-		},
-		body: options?.body ? JSON.stringify(options.body) : undefined,
-	});
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({ error: res.statusText }));
-		throw new Error(err.error || res.statusText);
-	}
-	return res.json();
-}
-
 // ── Projects ──
 
 export async function getProjects(): Promise<Project[]> {
-	return api<Project[]>("/api/projects");
+	if (isSupabaseConfigured) {
+		const { data, error } = await supabase!
+			.from("projects")
+			.select("*")
+			.order("updated_at", { ascending: false });
+		if (error) throw error;
+		return data as Project[];
+	}
+	return [];
 }
 
 export async function getProject(id: string): Promise<Project> {
-	return api<Project>(`/api/projects/${id}`);
+	const { data, error } = await supabase!
+		.from("projects")
+		.select("*")
+		.eq("id", id)
+		.single();
+	if (error) throw error;
+	return data as Project;
 }
 
 export async function createProject(
 	project: Omit<Project, "id" | "created_at" | "updated_at">,
 ): Promise<Project> {
-	return api<Project>("/api/projects", { method: "POST", body: project });
+	const { data, error } = await supabase!
+		.from("projects")
+		.insert(project)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Project;
 }
 
 export async function updateProject(
 	id: string,
 	updates: Partial<Project>,
 ): Promise<Project> {
-	return api<Project>(`/api/projects/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("projects")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Project;
 }
 
 export async function deleteProject(id: string): Promise<void> {
-	await api(`/api/projects/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("projects").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Tasks ──
@@ -70,30 +77,51 @@ export async function getTasks(filters?: {
 	status?: Task["status"];
 	sprint_id?: string;
 }): Promise<Task[]> {
-	const params = new URLSearchParams();
-	if (filters?.project_id) params.set("project_id", filters.project_id);
-	if (filters?.assigned_to) params.set("assigned_to", filters.assigned_to);
-	if (filters?.status) params.set("status", filters.status);
-	if (filters?.sprint_id) params.set("sprint_id", filters.sprint_id);
-	const qs = params.toString();
-	return api<Task[]>(`/api/tasks${qs ? `?${qs}` : ""}`);
+	let query = supabase!
+		.from("tasks")
+		.select("*")
+		.order("created_at", { ascending: false });
+	if (filters?.project_id) query = query.eq("project_id", filters.project_id);
+	if (filters?.assigned_to)
+		query = query.or(
+			`assigned_to.eq.${filters.assigned_to},assigned_to.eq.both`,
+		);
+	if (filters?.status) query = query.eq("status", filters.status);
+	if (filters?.sprint_id) query = query.eq("sprint_id", filters.sprint_id);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as Task[];
 }
 
 export async function createTask(
 	task: Omit<Task, "id" | "created_at" | "updated_at">,
 ): Promise<Task> {
-	return api<Task>("/api/tasks", { method: "POST", body: task });
+	const { data, error } = await supabase!
+		.from("tasks")
+		.insert(task)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Task;
 }
 
 export async function updateTask(
 	id: string,
 	updates: Partial<Task>,
 ): Promise<Task> {
-	return api<Task>(`/api/tasks/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("tasks")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Task;
 }
 
 export async function deleteTask(id: string): Promise<void> {
-	await api(`/api/tasks/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("tasks").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Notes ──
@@ -101,27 +129,45 @@ export async function deleteTask(id: string): Promise<void> {
 export async function getNotes(filters?: {
 	project_id?: string;
 }): Promise<Note[]> {
-	const params = new URLSearchParams();
-	if (filters?.project_id) params.set("project_id", filters.project_id);
-	const qs = params.toString();
-	return api<Note[]>(`/api/notes${qs ? `?${qs}` : ""}`);
+	let query = supabase!
+		.from("notes")
+		.select("*")
+		.order("updated_at", { ascending: false });
+	if (filters?.project_id) query = query.eq("project_id", filters.project_id);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as Note[];
 }
 
 export async function createNote(
 	note: Omit<Note, "id" | "created_at" | "updated_at">,
 ): Promise<Note> {
-	return api<Note>("/api/notes", { method: "POST", body: note });
+	const { data, error } = await supabase!
+		.from("notes")
+		.insert(note)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Note;
 }
 
 export async function updateNote(
 	id: string,
 	updates: Partial<Note>,
 ): Promise<Note> {
-	return api<Note>(`/api/notes/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("notes")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Note;
 }
 
 export async function deleteNote(id: string): Promise<void> {
-	await api(`/api/notes/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("notes").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Calendar Events ──
@@ -130,51 +176,91 @@ export async function getEvents(filters?: {
 	date?: string;
 	assigned_to?: User;
 }): Promise<CalendarEvent[]> {
-	const params = new URLSearchParams();
-	if (filters?.date) params.set("date", filters.date);
-	if (filters?.assigned_to) params.set("assigned_to", filters.assigned_to);
-	const qs = params.toString();
-	return api<CalendarEvent[]>(`/api/events${qs ? `?${qs}` : ""}`);
+	let query = supabase!
+		.from("events")
+		.select("*")
+		.order("date", { ascending: true });
+	if (filters?.date) query = query.eq("date", filters.date);
+	if (filters?.assigned_to)
+		query = query.or(
+			`assigned_to.eq.${filters.assigned_to},assigned_to.eq.both`,
+		);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as CalendarEvent[];
 }
 
 export async function createEvent(
 	event: Omit<CalendarEvent, "id" | "created_at" | "updated_at">,
 ): Promise<CalendarEvent> {
-	return api<CalendarEvent>("/api/events", { method: "POST", body: event });
+	const { data, error } = await supabase!
+		.from("events")
+		.insert(event)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as CalendarEvent;
 }
 
 export async function updateEvent(
 	id: string,
 	updates: Partial<CalendarEvent>,
 ): Promise<CalendarEvent> {
-	return api<CalendarEvent>(`/api/events/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("events")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as CalendarEvent;
 }
 
 export async function deleteEvent(id: string): Promise<void> {
-	await api(`/api/events/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("events").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Sprints ──
 
 export async function getSprints(): Promise<Sprint[]> {
-	return api<Sprint[]>("/api/sprints");
+	const { data, error } = await supabase!
+		.from("sprints")
+		.select("*")
+		.order("created_at", { ascending: false });
+	if (error) throw error;
+	return data as Sprint[];
 }
 
 export async function createSprint(
 	sprint: Omit<Sprint, "id" | "created_at" | "updated_at">,
 ): Promise<Sprint> {
-	return api<Sprint>("/api/sprints", { method: "POST", body: sprint });
+	const { data, error } = await supabase!
+		.from("sprints")
+		.insert(sprint)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Sprint;
 }
 
 export async function updateSprint(
 	id: string,
 	updates: Partial<Sprint>,
 ): Promise<Sprint> {
-	return api<Sprint>(`/api/sprints/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("sprints")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Sprint;
 }
 
 export async function deleteSprint(id: string): Promise<void> {
-	await api(`/api/sprints/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("sprints").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Standups ──
@@ -183,21 +269,32 @@ export async function getStandups(filters?: {
 	user?: User;
 	date?: string;
 }): Promise<StandupEntry[]> {
-	const params = new URLSearchParams();
-	if (filters?.user) params.set("user", filters.user);
-	if (filters?.date) params.set("date", filters.date);
-	const qs = params.toString();
-	return api<StandupEntry[]>(`/api/standups${qs ? `?${qs}` : ""}`);
+	let query = supabase!
+		.from("standups")
+		.select("*")
+		.order("date", { ascending: false });
+	if (filters?.user) query = query.eq("user", filters.user);
+	if (filters?.date) query = query.eq("date", filters.date);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as StandupEntry[];
 }
 
 export async function createStandup(
 	standup: Omit<StandupEntry, "id" | "created_at">,
 ): Promise<StandupEntry> {
-	return api<StandupEntry>("/api/standups", { method: "POST", body: standup });
+	const { data, error } = await supabase!
+		.from("standups")
+		.insert(standup)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as StandupEntry;
 }
 
 export async function deleteStandup(id: string): Promise<void> {
-	await api(`/api/standups/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("standups").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Contacts ──
@@ -205,27 +302,48 @@ export async function deleteStandup(id: string): Promise<void> {
 export async function getContacts(filters?: {
 	search?: string;
 }): Promise<Contact[]> {
-	const params = new URLSearchParams();
-	if (filters?.search) params.set("search", filters.search);
-	const qs = params.toString();
-	return api<Contact[]>(`/api/contacts${qs ? `?${qs}` : ""}`);
+	let query = supabase!
+		.from("contacts")
+		.select("*")
+		.order("updated_at", { ascending: false });
+	if (filters?.search)
+		query = query.or(
+			`name.ilike.%${filters.search}%,company.ilike.%${filters.search}%`,
+		);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as Contact[];
 }
 
 export async function createContact(
 	contact: Omit<Contact, "id" | "created_at" | "updated_at">,
 ): Promise<Contact> {
-	return api<Contact>("/api/contacts", { method: "POST", body: contact });
+	const { data, error } = await supabase!
+		.from("contacts")
+		.insert(contact)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Contact;
 }
 
 export async function updateContact(
 	id: string,
 	updates: Partial<Contact>,
 ): Promise<Contact> {
-	return api<Contact>(`/api/contacts/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("contacts")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Contact;
 }
 
 export async function deleteContact(id: string): Promise<void> {
-	await api(`/api/contacts/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("contacts").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Deals ──
@@ -234,28 +352,46 @@ export async function getDeals(filters?: {
 	stage?: Deal["stage"];
 	contact_id?: string;
 }): Promise<Deal[]> {
-	const params = new URLSearchParams();
-	if (filters?.stage) params.set("stage", filters.stage);
-	if (filters?.contact_id) params.set("contact_id", filters.contact_id);
-	const qs = params.toString();
-	return api<Deal[]>(`/api/deals${qs ? `?${qs}` : ""}`);
+	let query = supabase!
+		.from("deals")
+		.select("*")
+		.order("updated_at", { ascending: false });
+	if (filters?.stage) query = query.eq("stage", filters.stage);
+	if (filters?.contact_id) query = query.eq("contact_id", filters.contact_id);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as Deal[];
 }
 
 export async function createDeal(
 	deal: Omit<Deal, "id" | "created_at" | "updated_at">,
 ): Promise<Deal> {
-	return api<Deal>("/api/deals", { method: "POST", body: deal });
+	const { data, error } = await supabase!
+		.from("deals")
+		.insert(deal)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Deal;
 }
 
 export async function updateDeal(
 	id: string,
 	updates: Partial<Deal>,
 ): Promise<Deal> {
-	return api<Deal>(`/api/deals/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("deals")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as Deal;
 }
 
 export async function deleteDeal(id: string): Promise<void> {
-	await api(`/api/deals/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("deals").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Contact Activities ──
@@ -263,65 +399,113 @@ export async function deleteDeal(id: string): Promise<void> {
 export async function getContactActivities(
 	contactId: string,
 ): Promise<ContactActivity[]> {
-	return api<ContactActivity[]>(`/api/contact-activities?contact_id=${contactId}`);
+	const { data, error } = await supabase!
+		.from("contact_activities")
+		.select("*")
+		.eq("contact_id", contactId)
+		.order("date", { ascending: false });
+	if (error) throw error;
+	return data as ContactActivity[];
 }
 
 export async function createContactActivity(
 	activity: Omit<ContactActivity, "id" | "created_at">,
 ): Promise<ContactActivity> {
-	return api<ContactActivity>("/api/contact-activities", {
-		method: "POST",
-		body: activity,
-	});
+	const { data, error } = await supabase!
+		.from("contact_activities")
+		.insert(activity)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as ContactActivity;
 }
 
 export async function deleteContactActivity(id: string): Promise<void> {
-	await api(`/api/contact-activities/${id}`, { method: "DELETE" });
+	const { error } = await supabase!
+		.from("contact_activities")
+		.delete()
+		.eq("id", id);
+	if (error) throw error;
 }
 
 // ── News Posts ──
 
 export async function getNewsPosts(): Promise<NewsPost[]> {
-	return api<NewsPost[]>("/api/news");
+	const { data, error } = await supabase!
+		.from("news_posts")
+		.select("*")
+		.order("pinned", { ascending: false })
+		.order("created_at", { ascending: false });
+	if (error) throw error;
+	return data as NewsPost[];
 }
 
 export async function createNewsPost(
 	post: Omit<NewsPost, "id" | "created_at" | "updated_at">,
 ): Promise<NewsPost> {
-	return api<NewsPost>("/api/news", { method: "POST", body: post });
+	const { data, error } = await supabase!
+		.from("news_posts")
+		.insert(post)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as NewsPost;
 }
 
 export async function updateNewsPost(
 	id: string,
 	updates: Partial<NewsPost>,
 ): Promise<NewsPost> {
-	return api<NewsPost>(`/api/news/${id}`, { method: "PATCH", body: updates });
+	const { data, error } = await supabase!
+		.from("news_posts")
+		.update({ ...updates, updated_at: new Date().toISOString() })
+		.eq("id", id)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as NewsPost;
 }
 
 export async function deleteNewsPost(id: string): Promise<void> {
-	await api(`/api/news/${id}`, { method: "DELETE" });
+	const { error } = await supabase!.from("news_posts").delete().eq("id", id);
+	if (error) throw error;
 }
 
 // ── Mood Status ──
 
 export async function getMoods(date?: string): Promise<MoodStatus[]> {
-	const params = new URLSearchParams();
-	if (date) params.set("date", date);
-	const qs = params.toString();
-	return api<MoodStatus[]>(`/api/moods${qs ? `?${qs}` : ""}`);
+	let query = supabase!.from("moods").select("*");
+	if (date) query = query.eq("date", date);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as MoodStatus[];
 }
 
 export async function setMood(
 	mood: Omit<MoodStatus, "id" | "created_at">,
 ): Promise<MoodStatus> {
-	// Check if mood already exists for this user+date
-	const existing = await getMoods(mood.date);
-	const found = existing.find((m) => m.user === mood.user);
-	if (found) {
-		return api<MoodStatus>(`/api/moods/${found.id}`, {
-			method: "PATCH",
-			body: { emoji: mood.emoji, label: mood.label },
-		});
+	// Check if mood exists for this user+date
+	const { data: existing } = await supabase!
+		.from("moods")
+		.select("id")
+		.eq("user", mood.user)
+		.eq("date", mood.date)
+		.single();
+	if (existing) {
+		const { data, error } = await supabase!
+			.from("moods")
+			.update({ emoji: mood.emoji, label: mood.label })
+			.eq("id", existing.id)
+			.select()
+			.single();
+		if (error) throw error;
+		return data as MoodStatus;
 	}
-	return api<MoodStatus>("/api/moods", { method: "POST", body: mood });
+	const { data, error } = await supabase!
+		.from("moods")
+		.insert(mood)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as MoodStatus;
 }

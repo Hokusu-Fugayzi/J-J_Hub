@@ -15,10 +15,23 @@ create table projects (
   updated_at timestamptz not null default now()
 );
 
+-- Sprints (must be created before tasks since tasks references it)
+create table sprints (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  start_date date not null,
+  end_date date not null,
+  goal text not null default '',
+  status text not null default 'planning' check (status in ('planning', 'active', 'completed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- Tasks table
 create table tasks (
   id uuid primary key default uuid_generate_v4(),
   project_id uuid references projects(id) on delete set null,
+  sprint_id uuid references sprints(id) on delete set null,
   title text not null,
   description text not null default '',
   status text not null default 'todo' check (status in ('todo', 'in-progress', 'done')),
@@ -40,42 +53,19 @@ create table notes (
   updated_at timestamptz not null default now()
 );
 
--- Indexes
-create index tasks_project_id_idx on tasks(project_id);
-create index tasks_status_idx on tasks(status);
-create index tasks_assigned_to_idx on tasks(assigned_to);
-create index notes_project_id_idx on notes(project_id);
-
--- Add sprint_id to tasks
-alter table tasks add column sprint_id uuid references sprints(id) on delete set null;
-create index tasks_sprint_id_idx on tasks(sprint_id);
-
 -- Calendar Events
 create table events (
   id uuid primary key default uuid_generate_v4(),
   title text not null,
   description text not null default '',
   date date not null,
-  start_time time not null,
+  end_date date,
+  start_time time not null default '00:00',
   duration_minutes integer not null default 60,
   assigned_to text not null default 'both' check (assigned_to in ('jonah', 'julian', 'both')),
   color text not null default 'blue',
-  category text not null default 'other' check (category in ('meeting', 'deadline', 'reminder', 'social', 'other')),
+  category text not null default 'other' check (category in ('meeting', 'deadline', 'reminder', 'social', 'travel', 'other')),
   project_id uuid references projects(id) on delete set null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index events_date_idx on events(date);
-
--- Sprints
-create table sprints (
-  id uuid primary key default uuid_generate_v4(),
-  name text not null,
-  start_date date not null,
-  end_date date not null,
-  goal text not null default '',
-  status text not null default 'planning' check (status in ('planning', 'active', 'completed')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -90,8 +80,6 @@ create table standups (
   blockers text not null default '',
   created_at timestamptz not null default now()
 );
-
-create index standups_date_idx on standups(date);
 
 -- CRM: Contacts
 create table contacts (
@@ -119,9 +107,6 @@ create table deals (
   updated_at timestamptz not null default now()
 );
 
-create index deals_stage_idx on deals(stage);
-create index deals_contact_id_idx on deals(contact_id);
-
 -- CRM: Contact Activities
 create table contact_activities (
   id uuid primary key default uuid_generate_v4(),
@@ -132,8 +117,6 @@ create table contact_activities (
   created_by text not null check (created_by in ('jonah', 'julian')),
   created_at timestamptz not null default now()
 );
-
-create index contact_activities_contact_id_idx on contact_activities(contact_id);
 
 -- News Posts
 create table news_posts (
@@ -159,8 +142,14 @@ create table moods (
   unique("user", date)
 );
 
--- Row Level Security (disabled for simplicity since this is a private 2-person app)
--- If you want to add RLS later, you can enable it per table:
--- alter table projects enable row level security;
--- alter table tasks enable row level security;
--- alter table notes enable row level security;
+-- Indexes
+create index tasks_project_id_idx on tasks(project_id);
+create index tasks_status_idx on tasks(status);
+create index tasks_assigned_to_idx on tasks(assigned_to);
+create index tasks_sprint_id_idx on tasks(sprint_id);
+create index notes_project_id_idx on notes(project_id);
+create index events_date_idx on events(date);
+create index standups_date_idx on standups(date);
+create index deals_stage_idx on deals(stage);
+create index deals_contact_id_idx on deals(contact_id);
+create index contact_activities_contact_id_idx on contact_activities(contact_id);
