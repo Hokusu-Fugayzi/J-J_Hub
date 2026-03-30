@@ -193,28 +193,28 @@ export function Dashboard() {
 			{/* Stat cards with emoji */}
 			<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
 				<StatCard
-					emoji="\u{1F4C2}"
+					emoji={"\uD83D\uDCC2"}
 					icon={FolderKanban}
 					label="Active Projects"
 					value={activeProjects.length}
 					href="/projects"
 				/>
 				<StatCard
-					emoji="\u{1F4DD}"
+					emoji={"\uD83D\uDCDD"}
 					icon={CheckSquare}
 					label="Your Tasks"
 					value={myTasks.length}
 					href="/board"
 				/>
 				<StatCard
-					emoji="\u{1F5D2}\uFE0F"
+					emoji={"\uD83D\uDDD2\uFE0F"}
 					icon={StickyNote}
 					label="Notes"
 					value={notes.length}
 					href="/notes"
 				/>
 				<StatCard
-					emoji="\u{1F525}"
+					emoji={"\uD83D\uDD25"}
 					icon={Flame}
 					label="Done This Week"
 					value={tasksThisWeek}
