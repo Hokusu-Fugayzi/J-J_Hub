@@ -617,7 +617,7 @@ function EventForm({
 			<div className="flex gap-3">
 				<select
 					value={category}
-					onChange={(e) => setCategory(e.target.value)}
+					onChange={(e) => setCategory(e.target.value as CalendarEvent["category"])}
 					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="meeting">Meeting</option>

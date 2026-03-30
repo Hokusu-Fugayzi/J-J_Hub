@@ -19,13 +19,6 @@ const stageColors: Record<string, string> = {
 	lost: "border-t-red-400",
 };
 
-const stageBg: Record<string, string> = {
-	lead: "bg-gray-50",
-	proposal: "bg-blue-50",
-	negotiation: "bg-yellow-50",
-	won: "bg-green-50",
-	lost: "bg-red-50",
-};
 
 export function Pipeline() {
 	const [deals, setDeals] = useState<Deal[]>([]);

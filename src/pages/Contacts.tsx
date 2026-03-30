@@ -8,7 +8,7 @@ import {
 	createContactActivity,
 	deleteContactActivity,
 } from "@/lib/data";
-import { capitalize, timeAgo, formatDate } from "@/lib/utils";
+import { capitalize, formatDate } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import type { Contact, ContactActivity } from "@/types";
 import {
@@ -26,13 +26,6 @@ import {
 import { toDateString } from "@/lib/utils";
 
 const ACTIVITY_TYPES = ["call", "email", "meeting", "note"] as const;
-
-const activityIcons: Record<string, string> = {
-	call: "phone",
-	email: "mail",
-	meeting: "calendar",
-	note: "file-text",
-};
 
 export function Contacts() {
 	const { user } = useAuth();
