@@ -61,6 +61,7 @@ export function Board() {
 	const [draggedId, setDraggedId] = useState<string | null>(null);
 	const [addingTo, setAddingTo] = useState<Task["status"] | null>(null);
 	const [editingTask, setEditingTask] = useState<Task | null>(null);
+	const [showAllDone, setShowAllDone] = useState(false);
 
 	const load = () => {
 		Promise.all([getTasks(), getProjects(), getSprints()])
@@ -215,6 +216,12 @@ export function Board() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[300px] md:min-h-[500px]">
 				{COLUMNS.map(({ status, label, color }) => {
 					const columnTasks = filtered.filter((t) => t.status === status);
+					const DONE_LIMIT = 10;
+					const isDone = status === "done";
+					const visibleTasks = isDone && !showAllDone
+						? columnTasks.slice(0, DONE_LIMIT)
+						: columnTasks;
+					const hiddenCount = isDone ? columnTasks.length - DONE_LIMIT : 0;
 
 					return (
 						<div
@@ -255,7 +262,7 @@ export function Board() {
 							)}
 
 							<div className="space-y-2">
-								{columnTasks.map((task) => (
+								{visibleTasks.map((task) => (
 									<div
 										key={task.id}
 										draggable
@@ -298,6 +305,16 @@ export function Board() {
 									</div>
 								))}
 							</div>
+							{isDone && hiddenCount > 0 && (
+								<button
+									onClick={() => setShowAllDone(!showAllDone)}
+									className="w-full mt-2 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+								>
+									{showAllDone
+										? "Show less"
+										: `View ${hiddenCount} more completed`}
+								</button>
+							)}
 						</div>
 					);
 				})}
