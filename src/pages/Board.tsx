@@ -254,7 +254,10 @@ export function Board() {
 								<QuickAddTask
 									status={status}
 									projects={projects}
+									sprints={sprints}
 									currentUser={user!}
+									activeSprintFilter={filterSprint}
+									activeProjectFilter={filterProject}
 									onSave={() => {
 										setAddingTo(null);
 										load();
@@ -514,18 +517,27 @@ function EditTaskModal({
 function QuickAddTask({
 	status,
 	projects,
+	sprints,
 	currentUser,
+	activeSprintFilter,
+	activeProjectFilter,
 	onSave,
 	onCancel,
 }: {
 	status: Task["status"];
 	projects: Project[];
+	sprints: Sprint[];
 	currentUser: string;
+	activeSprintFilter: string;
+	activeProjectFilter: string;
 	onSave: () => void;
 	onCancel: () => void;
 }) {
+	const defaultSprint = activeSprintFilter !== "all" && activeSprintFilter !== "none" ? activeSprintFilter : "";
+	const defaultProject = activeProjectFilter !== "all" && activeProjectFilter !== "none" ? activeProjectFilter : "";
 	const [title, setTitle] = useState("");
-	const [projectId, setProjectId] = useState("");
+	const [projectId, setProjectId] = useState(defaultProject);
+	const [sprintId, setSprintId] = useState(defaultSprint);
 	const [priority, setPriority] = useState("medium");
 	const [assignedTo, setAssignedTo] = useState(currentUser);
 	const [saving, setSaving] = useState(false);
@@ -539,7 +551,7 @@ function QuickAddTask({
 				title: title.trim(),
 				description: "",
 				project_id: projectId || null,
-				sprint_id: null,
+				sprint_id: sprintId || null,
 				status,
 				priority: priority as Task["priority"],
 				assigned_to: assignedTo as Task["assigned_to"],
@@ -572,7 +584,7 @@ function QuickAddTask({
 				required
 				className="w-full px-2 py-1.5 border border-input rounded text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
 			/>
-			<div className="grid grid-cols-3 gap-2">
+			<div className="grid grid-cols-2 gap-2">
 				<select
 					value={projectId}
 					onChange={(e) => setProjectId(e.target.value)}
@@ -582,6 +594,18 @@ function QuickAddTask({
 					{projects.map((p) => (
 						<option key={p.id} value={p.id}>
 							{p.name}
+						</option>
+					))}
+				</select>
+				<select
+					value={sprintId}
+					onChange={(e) => setSprintId(e.target.value)}
+					className="w-full px-2 py-1.5 border border-input rounded text-xs bg-background"
+				>
+					<option value="">No sprint</option>
+					{sprints.map((s) => (
+						<option key={s.id} value={s.id}>
+							{s.name}
 						</option>
 					))}
 				</select>
