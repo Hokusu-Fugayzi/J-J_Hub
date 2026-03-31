@@ -82,7 +82,7 @@ export function News() {
 				</button>
 			</div>
 
-			<div className="flex gap-2 mb-4">
+			<div className="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0">
 				<button
 					onClick={() => setFilterCategory("all")}
 					className={`px-3 py-1.5 rounded-md text-sm ${filterCategory === "all" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
@@ -146,7 +146,7 @@ export function News() {
 									<span>{timeAgo(post.created_at)}</span>
 								</div>
 							</button>
-							<div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+							<div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
 								<button
 									onClick={() => togglePin(post)}
 									className="p-1.5 rounded hover:bg-accent"

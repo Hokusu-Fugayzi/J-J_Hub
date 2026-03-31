@@ -149,11 +149,11 @@ export function Board() {
 						Drag tasks between columns
 					</p>
 				</div>
-				<div className="flex gap-2">
+				<div className="flex flex-col sm:flex-row gap-2">
 					<select
 						value={filterProject}
 						onChange={(e) => setFilterProject(e.target.value)}
-						className="px-3 py-1.5 border border-input rounded-md text-sm bg-background"
+						className="px-3 py-2 border border-input rounded-md text-sm bg-background"
 					>
 						<option value="all">All projects</option>
 						<option value="none">No project</option>
@@ -166,7 +166,7 @@ export function Board() {
 					<select
 						value={filterSprint}
 						onChange={(e) => setFilterSprint(e.target.value)}
-						className="px-3 py-1.5 border border-input rounded-md text-sm bg-background"
+						className="px-3 py-2 border border-input rounded-md text-sm bg-background"
 					>
 						<option value="all">All sprints</option>
 						<option value="none">No sprint</option>
@@ -270,7 +270,7 @@ export function Board() {
 													e.stopPropagation();
 													handleDelete(task.id);
 												}}
-												className="p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-accent transition-opacity shrink-0"
+												className="p-1.5 rounded md:opacity-0 md:group-hover:opacity-100 hover:bg-accent transition-opacity shrink-0"
 											>
 												<Trash2 className="w-3 h-3 text-muted-foreground" />
 											</button>
@@ -359,7 +359,7 @@ function EditTaskModal({
 			<form
 				onClick={(e) => e.stopPropagation()}
 				onSubmit={handleSubmit}
-				className="bg-background border border-border rounded-lg p-5 w-full max-w-md space-y-3 shadow-lg"
+				className="bg-background border border-border rounded-lg p-4 md:p-5 w-full max-w-[92vw] sm:max-w-md space-y-3 shadow-lg max-h-[85vh] overflow-y-auto"
 			>
 				<div className="flex items-center justify-between">
 					<h3 className="font-semibold">Edit Task</h3>
@@ -553,11 +553,11 @@ function QuickAddTask({
 				required
 				className="w-full px-2 py-1.5 border border-input rounded text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
 			/>
-			<div className="flex gap-2 flex-wrap">
+			<div className="grid grid-cols-3 gap-2">
 				<select
 					value={projectId}
 					onChange={(e) => setProjectId(e.target.value)}
-					className="px-2 py-1 border border-input rounded text-xs bg-background"
+					className="w-full px-2 py-1.5 border border-input rounded text-xs bg-background"
 				>
 					<option value="">No project</option>
 					{projects.map((p) => (
@@ -569,7 +569,7 @@ function QuickAddTask({
 				<select
 					value={priority}
 					onChange={(e) => setPriority(e.target.value)}
-					className="px-2 py-1 border border-input rounded text-xs bg-background"
+					className="w-full px-2 py-1.5 border border-input rounded text-xs bg-background"
 				>
 					<option value="low">Low</option>
 					<option value="medium">Medium</option>
@@ -578,7 +578,7 @@ function QuickAddTask({
 				<select
 					value={assignedTo}
 					onChange={(e) => setAssignedTo(e.target.value)}
-					className="px-2 py-1 border border-input rounded text-xs bg-background"
+					className="w-full px-2 py-1.5 border border-input rounded text-xs bg-background"
 				>
 					<option value="jonah">Jonah</option>
 					<option value="julian">Julian</option>

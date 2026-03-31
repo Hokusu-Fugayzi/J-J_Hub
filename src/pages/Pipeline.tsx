@@ -77,7 +77,7 @@ export function Pipeline() {
 				</p>
 			</div>
 
-			<div className="grid grid-cols-5 gap-3 min-h-[500px]">
+			<div className="flex md:grid md:grid-cols-5 gap-3 min-h-[300px] md:min-h-[500px] overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible snap-x snap-mandatory md:snap-none">
 				{STAGES.map((stage) => {
 					const stageDeals = deals.filter((d) => d.stage === stage);
 					const totalValue = stageDeals.reduce(
@@ -90,7 +90,7 @@ export function Pipeline() {
 							key={stage}
 							onDragOver={handleDragOver}
 							onDrop={() => handleDrop(stage)}
-							className={`rounded-lg border border-border border-t-4 ${stageColors[stage]} p-3`}
+							className={`rounded-lg border border-border border-t-4 ${stageColors[stage]} p-3 min-w-[250px] md:min-w-0 snap-start`}
 						>
 							<div className="mb-3">
 								<h3 className="font-semibold text-sm">

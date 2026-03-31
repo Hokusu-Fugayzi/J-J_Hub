@@ -168,7 +168,7 @@ export function Tasks() {
 						</div>
 						<button
 							onClick={() => handleDelete(task.id)}
-							className="p-1.5 rounded opacity-0 group-hover:opacity-100 hover:bg-accent transition-opacity"
+							className="p-2 rounded md:opacity-0 md:group-hover:opacity-100 hover:bg-accent transition-opacity"
 						>
 							<Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
 						</button>
@@ -248,11 +248,11 @@ function TaskForm({
 				rows={2}
 				className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
 			/>
-			<div className="flex gap-3 flex-wrap">
+			<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
 				<select
 					value={projectId}
 					onChange={(e) => setProjectId(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="">No project</option>
 					{projects.map((p) => (
@@ -264,7 +264,7 @@ function TaskForm({
 				<select
 					value={sprintId}
 					onChange={(e) => setSprintId(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="">No sprint</option>
 					{sprints.map((s) => (
@@ -276,7 +276,7 @@ function TaskForm({
 				<select
 					value={priority}
 					onChange={(e) => setPriority(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="low">Low</option>
 					<option value="medium">Medium</option>
@@ -285,7 +285,7 @@ function TaskForm({
 				<select
 					value={assignedTo}
 					onChange={(e) => setAssignedTo(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="jonah">Jonah</option>
 					<option value="julian">Julian</option>
@@ -295,7 +295,7 @@ function TaskForm({
 					type="date"
 					value={dueDate}
 					onChange={(e) => setDueDate(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 					title="Due date"
 				/>
 			</div>

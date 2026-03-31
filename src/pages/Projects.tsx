@@ -210,11 +210,11 @@ function ProjectForm({
 				rows={2}
 				className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
 			/>
-			<div className="flex gap-3">
+			<div className="grid grid-cols-2 gap-3">
 				<select
 					value={status}
 					onChange={(e) => setStatus(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="active">Active</option>
 					<option value="paused">Paused</option>
@@ -223,7 +223,7 @@ function ProjectForm({
 				<select
 					value={assignedTo}
 					onChange={(e) => setAssignedTo(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="jonah">Jonah</option>
 					<option value="julian">Julian</option>

@@ -195,7 +195,7 @@ export function Standups() {
 										</div>
 										<button
 											onClick={() => handleDelete(entry.id)}
-											className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-accent transition-opacity"
+											className="p-2 rounded md:opacity-0 md:group-hover:opacity-100 hover:bg-accent transition-opacity"
 										>
 											<Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
 										</button>

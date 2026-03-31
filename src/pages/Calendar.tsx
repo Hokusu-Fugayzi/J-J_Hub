@@ -120,30 +120,30 @@ export function Calendar() {
 				</button>
 			</div>
 
-			<div className="flex items-center justify-between mb-4">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() =>
 							view === "month" ? navigateMonth(-1) : navigateWeek(-1)
 						}
-						className="p-1.5 rounded hover:bg-accent"
+						className="p-2 rounded hover:bg-accent"
 					>
 						<ChevronLeft className="w-4 h-4" />
 					</button>
-					<h2 className="text-lg font-semibold min-w-[200px] text-center">
+					<h2 className="text-lg font-semibold min-w-[160px] text-center">
 						{formatMonthYear(year, month)}
 					</h2>
 					<button
 						onClick={() =>
 							view === "month" ? navigateMonth(1) : navigateWeek(1)
 						}
-						className="p-1.5 rounded hover:bg-accent"
+						className="p-2 rounded hover:bg-accent"
 					>
 						<ChevronRight className="w-4 h-4" />
 					</button>
 					<button
 						onClick={goToday}
-						className="px-3 py-1 text-sm rounded-md hover:bg-accent border border-border ml-2"
+						className="px-3 py-1.5 text-sm rounded-md hover:bg-accent border border-border ml-2"
 					>
 						Today
 					</button>
@@ -263,7 +263,7 @@ function MonthView({
 						return (
 							<div
 								key={`empty-${i}`}
-								className="min-h-[80px] border-b border-r border-border bg-muted/10"
+								className="min-h-[56px] md:min-h-[80px] border-b border-r border-border bg-muted/10"
 							/>
 						);
 					}
@@ -277,7 +277,7 @@ function MonthView({
 						<button
 							key={dateStr}
 							onClick={() => onSelectDate(dateStr)}
-							className={`min-h-[80px] border-b border-r border-border p-1.5 text-left hover:bg-accent/30 transition-colors ${isSelected ? "bg-accent/50" : ""}`}
+							className={`min-h-[56px] md:min-h-[80px] border-b border-r border-border p-1 md:p-1.5 text-left hover:bg-accent/30 transition-colors ${isSelected ? "bg-accent/50" : ""}`}
 						>
 							<span
 								className={`text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full ${isToday ? "bg-primary text-primary-foreground" : ""}`}
@@ -351,7 +351,7 @@ function WeekView({
 						<button
 							key={dateStr}
 							onClick={() => onSelectDate(dateStr)}
-							className="min-h-[200px] border-r border-border p-2 text-left hover:bg-accent/30 transition-colors last:border-r-0"
+							className="min-h-[120px] md:min-h-[200px] border-r border-border p-1.5 md:p-2 text-left hover:bg-accent/30 transition-colors last:border-r-0"
 						>
 							<div className="text-center mb-2">
 								<div className="text-xs text-muted-foreground">
@@ -565,7 +565,7 @@ function EventForm({
 				rows={2}
 				className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
 			/>
-			<div className="flex gap-3 flex-wrap">
+			<div className="grid grid-cols-2 gap-3">
 				<div>
 					<label className="text-xs text-muted-foreground">Start date</label>
 					<input
@@ -614,11 +614,11 @@ function EventForm({
 					</>
 				)}
 			</div>
-			<div className="flex gap-3">
+			<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
 				<select
 					value={category}
 					onChange={(e) => setCategory(e.target.value as CalendarEvent["category"])}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="meeting">Meeting</option>
 					<option value="deadline">Deadline</option>
@@ -630,7 +630,7 @@ function EventForm({
 				<select
 					value={assignedTo}
 					onChange={(e) => setAssignedTo(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="jonah">Jonah</option>
 					<option value="julian">Julian</option>
@@ -639,7 +639,7 @@ function EventForm({
 				<select
 					value={projectId}
 					onChange={(e) => setProjectId(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="">No project</option>
 					{projects.map((p) => (

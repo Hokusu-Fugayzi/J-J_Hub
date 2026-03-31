@@ -133,8 +133,8 @@ export function Deals() {
 						key={deal.id}
 						className="flex items-center justify-between p-4 border border-border rounded-lg group"
 					>
-						<div className="flex-1">
-							<div className="flex items-center gap-3">
+						<div className="flex-1 min-w-0">
+							<div className="flex flex-wrap items-center gap-2 sm:gap-3">
 								<h3 className="font-semibold text-sm">{deal.name}</h3>
 								<span
 									className={`text-xs px-2 py-0.5 rounded-full ${stageColors[deal.stage]}`}
@@ -160,7 +160,7 @@ export function Deals() {
 								<span>{timeAgo(deal.updated_at)}</span>
 							</div>
 						</div>
-						<div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+						<div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
 							<button
 								onClick={() => {
 									setEditing(deal);
@@ -256,18 +256,18 @@ function DealForm({
 				required
 				className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
 			/>
-			<div className="flex gap-3">
+			<div className="grid grid-cols-2 gap-3">
 				<input
 					value={value}
 					onChange={(e) => setValue(e.target.value)}
 					placeholder="Value ($)"
 					type="number"
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring w-32"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
 				/>
 				<select
 					value={stage}
 					onChange={(e) => setStage(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					{STAGES.map((s) => (
 						<option key={s} value={s}>
@@ -275,12 +275,10 @@ function DealForm({
 						</option>
 					))}
 				</select>
-			</div>
-			<div className="flex gap-3">
 				<select
 					value={contactId}
 					onChange={(e) => setContactId(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="">No contact</option>
 					{contacts.map((c) => (
@@ -292,7 +290,7 @@ function DealForm({
 				<select
 					value={projectId}
 					onChange={(e) => setProjectId(e.target.value)}
-					className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+					className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 				>
 					<option value="">No project</option>
 					{projects.map((p) => (
