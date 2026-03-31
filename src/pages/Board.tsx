@@ -143,18 +143,20 @@ export function Board() {
 
 	return (
 		<div>
-			<div className="flex items-center justify-between mb-4">
-				<div>
-					<h1 className="text-2xl font-bold">Board</h1>
-					<p className="text-muted-foreground text-sm hidden sm:block">
-						Drag tasks between columns
-					</p>
+			<div className="mb-4">
+				<div className="flex items-center justify-between mb-3">
+					<div>
+						<h1 className="text-xl md:text-2xl font-bold">Board</h1>
+						<p className="text-muted-foreground text-sm hidden sm:block">
+							Drag tasks between columns
+						</p>
+					</div>
 				</div>
-				<div className="flex flex-col sm:flex-row gap-2">
+				<div className="grid grid-cols-2 gap-2">
 					<select
 						value={filterProject}
 						onChange={(e) => setFilterProject(e.target.value)}
-						className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+						className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 					>
 						<option value="all">All projects</option>
 						<option value="none">No project</option>
@@ -167,7 +169,7 @@ export function Board() {
 					<select
 						value={filterSprint}
 						onChange={(e) => setFilterSprint(e.target.value)}
-						className="px-3 py-2 border border-input rounded-md text-sm bg-background"
+						className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background"
 					>
 						<option value="all">All sprints</option>
 						<option value="none">No sprint</option>
@@ -213,7 +215,7 @@ export function Board() {
 			)}
 
 			{/* Mobile: stacked columns. Desktop: 3-col grid */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[300px] md:min-h-[500px]">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-0 md:min-h-[500px]">
 				{COLUMNS.map(({ status, label, color }) => {
 					const columnTasks = filtered.filter((t) => t.status === status);
 					const DONE_LIMIT = 10;
@@ -228,7 +230,7 @@ export function Board() {
 							key={status}
 							onDragOver={handleDragOver}
 							onDrop={() => handleDrop(status)}
-							className={`rounded-lg border border-border border-t-4 ${color} p-3`}
+							className={`rounded-lg border border-border border-t-4 ${color} p-3 overflow-hidden`}
 						>
 							<div className="flex items-center justify-between mb-3">
 								<div className="flex items-center gap-2">
@@ -268,10 +270,10 @@ export function Board() {
 										draggable
 										onDragStart={() => handleDragStart(task.id)}
 										onClick={() => setEditingTask(task)}
-										className={`p-3 rounded-md border border-border border-l-4 cursor-pointer md:cursor-grab md:active:cursor-grabbing hover:shadow-sm transition-shadow group ${getProjectColor(task.project_id)} ${draggedId === task.id ? "opacity-50" : ""}`}
+										className={`p-3 rounded-md border border-border border-l-4 cursor-pointer md:cursor-grab md:active:cursor-grabbing hover:shadow-sm transition-shadow group overflow-hidden ${getProjectColor(task.project_id)} ${draggedId === task.id ? "opacity-50" : ""}`}
 									>
-										<div className="flex items-start justify-between">
-											<p className="text-sm font-medium">{task.title}</p>
+										<div className="flex items-start justify-between gap-2">
+											<p className="text-sm font-medium break-words min-w-0">{task.title}</p>
 											<button
 												onClick={(e) => {
 													e.stopPropagation();
