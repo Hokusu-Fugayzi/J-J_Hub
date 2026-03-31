@@ -77,7 +77,7 @@ export function Pipeline() {
 				</p>
 			</div>
 
-			<div className="flex md:grid md:grid-cols-5 gap-3 min-h-[300px] md:min-h-[500px] overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible snap-x snap-mandatory md:snap-none">
+			<div className="flex md:grid md:grid-cols-5 gap-3 min-h-[300px] md:min-h-[500px] overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
 				{STAGES.map((stage) => {
 					const stageDeals = deals.filter((d) => d.stage === stage);
 					const totalValue = stageDeals.reduce(

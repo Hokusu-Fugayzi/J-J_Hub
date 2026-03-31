@@ -17,7 +17,7 @@ export function Login() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-muted/30">
+		<div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
 			<div className="w-full max-w-sm border border-border rounded-lg bg-card p-6 shadow-sm">
 				<div className="flex justify-center mb-2">
 					<img src={japjuLogo} alt="JAPJU" className="h-20 object-contain" />

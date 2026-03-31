@@ -120,8 +120,13 @@ input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 	padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-body {
+html, body {
 	margin: 0;
+	overflow-x: hidden;
+	overscroll-behavior-x: none;
+}
+
+body {
 	font-family:
 		"Inter",
 		-apple-system,
@@ -133,4 +138,8 @@ body {
 	color: var(--color-foreground);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+	overflow-x: hidden;
 }

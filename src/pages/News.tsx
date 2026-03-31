@@ -82,7 +82,7 @@ export function News() {
 				</button>
 			</div>
 
-			<div className="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0">
+			<div className="flex gap-2 mb-4 overflow-x-auto pb-1">
 				<button
 					onClick={() => setFilterCategory("all")}
 					className={`px-3 py-1.5 rounded-md text-sm ${filterCategory === "all" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}

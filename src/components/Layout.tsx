@@ -120,16 +120,16 @@ export function Layout() {
 
 			{/* Mobile header */}
 			<div className="flex flex-col flex-1 min-h-0">
-				<header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background">
-					<img src={japjuLogo} alt="JAPJU" className="h-8 object-contain" />
+				<header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}>
+					<img src={japjuLogo} alt="JAPJU" className="h-10 object-contain" />
 					<button
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 						className="p-2 rounded-md hover:bg-accent"
 					>
 						{mobileMenuOpen ? (
-							<X className="w-5 h-5" />
+							<X className="w-6 h-6" />
 						) : (
-							<Menu className="w-5 h-5" />
+							<Menu className="w-6 h-6" />
 						)}
 					</button>
 				</header>
@@ -144,7 +144,7 @@ export function Layout() {
 							className="absolute right-0 top-0 bottom-0 w-64 bg-background border-l border-border overflow-y-auto"
 							onClick={(e) => e.stopPropagation()}
 						>
-							<div className="p-4 border-b border-border flex items-center justify-between">
+							<div className="p-4 border-b border-border flex items-center justify-between" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}>
 								<div>
 									<p className="font-semibold text-sm">
 										{capitalize(user!)}
@@ -202,7 +202,7 @@ export function Layout() {
 				)}
 
 				{/* Main content */}
-				<main className="flex-1 overflow-auto pb-20 md:pb-0">
+				<main className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0">
 					<div className="p-4 md:p-6 max-w-5xl mx-auto">
 						<Outlet />
 					</div>
