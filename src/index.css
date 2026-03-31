@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
 @theme {
-	--color-background: #ffffff;
-	--color-foreground: #0a0a0a;
+	--color-background: #faf9f7;
+	--color-foreground: #1a1a2e;
 	--color-card: #ffffff;
-	--color-card-foreground: #0a0a0a;
+	--color-card-foreground: #1a1a2e;
 	--color-popover: #ffffff;
-	--color-popover-foreground: #0a0a0a;
-	--color-primary: #171717;
-	--color-primary-foreground: #fafafa;
-	--color-secondary: #f5f5f5;
-	--color-secondary-foreground: #171717;
-	--color-muted: #f5f5f5;
-	--color-muted-foreground: #737373;
-	--color-accent: #f5f5f5;
-	--color-accent-foreground: #171717;
+	--color-popover-foreground: #1a1a2e;
+	--color-primary: #8b2332;
+	--color-primary-foreground: #faf9f7;
+	--color-secondary: #f0ebe4;
+	--color-secondary-foreground: #1a1a2e;
+	--color-muted: #f0ebe4;
+	--color-muted-foreground: #6b6b7b;
+	--color-accent: #f0ebe4;
+	--color-accent-foreground: #1a1a2e;
 	--color-destructive: #ef4444;
 	--color-destructive-foreground: #fafafa;
-	--color-border: #e5e5e5;
-	--color-input: #e5e5e5;
-	--color-ring: #0a0a0a;
+	--color-border: #e0d8ce;
+	--color-input: #e0d8ce;
+	--color-ring: #8b2332;
 	--radius: 0.5rem;
+}
+
+/* Modern select styling */
+select {
+	appearance: none;
+	-webkit-appearance: none;
+	background-color: var(--color-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius);
+	padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+	font-size: 0.875rem;
+	line-height: 1.25rem;
+	color: var(--color-foreground);
+	cursor: pointer;
+	transition: border-color 0.15s, box-shadow 0.15s;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6b7b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 0.5rem center;
+	background-size: 1rem;
+}
+
+select:hover {
+	border-color: var(--color-ring);
+}
+
+select:focus {
+	outline: none;
+	border-color: var(--color-ring);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ring) 25%, transparent);
+}
+
+/* Modern date & time input styling */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+	appearance: none;
+	-webkit-appearance: none;
+	background-color: var(--color-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius);
+	padding: 0.5rem 0.75rem;
+	font-size: 0.875rem;
+	line-height: 1.25rem;
+	color: var(--color-foreground);
+	font-family: inherit;
+	cursor: pointer;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="date"]:hover,
+input[type="time"]:hover,
+input[type="datetime-local"]:hover {
+	border-color: var(--color-ring);
+}
+
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus {
+	outline: none;
+	border-color: var(--color-ring);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ring) 25%, transparent);
+}
+
+/* Style the calendar/time picker icons */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+	opacity: 0.5;
+	cursor: pointer;
+	transition: opacity 0.15s;
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator,
+input[type="time"]:hover::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
+	opacity: 0.8;
 }
 
 .safe-bottom {

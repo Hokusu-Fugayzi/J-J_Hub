@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import japjuLogo from "@/assets/japju-logo.png";
 
 export function Login() {
 	const { login } = useAuth();
@@ -18,7 +19,9 @@ export function Login() {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-muted/30">
 			<div className="w-full max-w-sm border border-border rounded-lg bg-card p-6 shadow-sm">
-				<h1 className="text-3xl font-bold text-center mb-1">JAPJU</h1>
+				<div className="flex justify-center mb-2">
+					<img src={japjuLogo} alt="JAPJU" className="h-20 object-contain" />
+				</div>
 				<p className="text-sm text-muted-foreground text-center italic mb-6">
 					a home for you
 				</p>

@@ -18,6 +18,7 @@ import {
 	X,
 } from "lucide-react";
 import { useState } from "react";
+import japjuLogo from "@/assets/japju-logo.png";
 
 const navSections = [
 	{
@@ -68,10 +69,10 @@ export function Layout() {
 		<div className="flex h-screen">
 			{/* Desktop sidebar */}
 			<aside className="hidden md:flex w-56 border-r border-border bg-muted/40 flex-col">
-				<div className="p-4 border-b border-border">
-					<h1 className="text-lg font-bold tracking-tight">JAPJU</h1>
-					<p className="text-xs text-muted-foreground italic">a home for you</p>
-					<p className="text-xs text-muted-foreground mt-0.5">
+				<div className="p-2 border-b border-border">
+					<img src={japjuLogo} alt="JAPJU" className="w-full object-contain" />
+					<p className="text-xs text-muted-foreground italic text-center">a home for you</p>
+					<p className="text-xs text-muted-foreground text-center mt-0.5">
 						{capitalize(user!)} is logged in
 					</p>
 				</div>
@@ -120,7 +121,7 @@ export function Layout() {
 			{/* Mobile header */}
 			<div className="flex flex-col flex-1 min-h-0">
 				<header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background">
-					<h1 className="text-lg font-bold tracking-tight">JAPJU</h1>
+					<img src={japjuLogo} alt="JAPJU" className="h-8 object-contain" />
 					<button
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 						className="p-2 rounded-md hover:bg-accent"
