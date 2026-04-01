@@ -191,6 +191,17 @@ create table weigh_ins (
   created_at timestamptz not null default now()
 );
 
+-- Fitness: Nudges (roast/encourage your partner)
+create table fitness_nudges (
+  id uuid primary key default uuid_generate_v4(),
+  from_user text not null check (from_user in ('jonah', 'julian')),
+  to_user text not null check (to_user in ('jonah', 'julian')),
+  message text not null,
+  category text not null default 'custom' check (category in ('water', 'workout', 'praise', 'roast', 'custom')),
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
 -- Indexes
 create index tasks_project_id_idx on tasks(project_id);
 create index tasks_status_idx on tasks(status);
@@ -206,3 +217,4 @@ create index workout_logs_user_date_idx on workout_logs("user", date);
 create index water_logs_user_date_idx on water_logs("user", date);
 create index daily_checkins_user_date_idx on daily_checkins("user", date);
 create index weigh_ins_user_date_idx on weigh_ins("user", date);
+create index fitness_nudges_to_user_idx on fitness_nudges(to_user, read);

@@ -10,14 +10,19 @@ import {
 	getWeighIns,
 	createWeighIn,
 	getCheckInHistory,
+	getNudges,
+	createNudge,
+	markNudgesRead,
+	getUnreadNudgeCount,
 } from "@/lib/data";
-import { toDateString } from "@/lib/utils";
+import { toDateString, timeAgo } from "@/lib/utils";
 import type {
 	WorkoutRoutine,
 	WorkoutLog,
 	WaterLog,
 	DailyCheckIn,
 	WeighIn,
+	FitnessNudge,
 } from "@/types";
 import {
 	Dumbbell,
@@ -35,6 +40,8 @@ import {
 	Activity,
 	AlertCircle,
 	Clock,
+	Send,
+	MessageCircle,
 } from "lucide-react";
 
 // ── Jonah's Routine ──
@@ -182,8 +189,58 @@ const NUTRITION_TIPS = [
 	"Swap one weeknight whisky for herbal tea — small win, big compounding effect",
 ];
 
+// Pre-loaded nudge messages — the ruder the better
+const NUDGE_PRESETS: { category: FitnessNudge["category"]; messages: string[] }[] = [
+	{
+		category: "water",
+		messages: [
+			"Drink water you fucking idiot",
+			"Your kidneys are filing a missing persons report. DRINK WATER.",
+			"You're literally a raisin right now. Hydrate, dumbass.",
+			"That headache? It's your brain screaming for water, genius.",
+			"If your pee is yellow one more time I swear to god",
+			"Camels drink more water than you. Be better.",
+		],
+	},
+	{
+		category: "workout",
+		messages: [
+			"Don't forget your workout you fat bastard",
+			"The gym misses you. Just kidding, nobody noticed you were gone.",
+			"Your couch called. It's tired of your ass. Go lift.",
+			"Those weights aren't going to lift themselves, princess.",
+			"Skip today and you're officially soft. Your call.",
+			"Didn't see you at the gym. Saw you on the couch though.",
+		],
+	},
+	{
+		category: "praise",
+		messages: [
+			"You did it sexy little guy",
+			"Look at you being all healthy and shit. Proud of you, king.",
+			"Absolute machine today. Don't let it go to your head.",
+			"OK fine you looked good at the gym today. Don't make it weird.",
+			"Who is this fitness god and what did they do with my partner?",
+			"You showed up and that's more than most. Nice work, idiot.",
+		],
+	},
+	{
+		category: "roast",
+		messages: [
+			"I've seen better form from a wet noodle",
+			"You call that a workout? My grandma lifts heavier.",
+			"That belly isn't going to lose itself, tubby",
+			"Another whisky tonight? Bold strategy, let's see how it plays out.",
+			"Are you bulking or just giving up?",
+			"You look like you Googled 'exercise' and called it a day",
+			"I believe in you. Not a lot. But a little.",
+		],
+	},
+];
+
 export function Fitness() {
 	const { user } = useAuth();
+	const partner = user === "jonah" ? "julian" : "jonah";
 	const today = toDateString(new Date());
 	const dayOfWeek = DAYS[new Date().getDay()];
 
@@ -198,6 +255,15 @@ export function Fitness() {
 	const [showWeighIn, setShowWeighIn] = useState(false);
 	const [showCheckIn, setShowCheckIn] = useState(false);
 	const [tipIndex, setTipIndex] = useState(0);
+	const [viewingUser, setViewingUser] = useState(user!);
+
+	// Nudge state
+	const [nudges, setNudges] = useState<FitnessNudge[]>([]);
+	const [unreadCount, setUnreadCount] = useState(0);
+	const [showNudges, setShowNudges] = useState(false);
+	const [showNudgeComposer, setShowNudgeComposer] = useState(false);
+	const [customNudge, setCustomNudge] = useState("");
+	const [nudgeCategory, setNudgeCategory] = useState<FitnessNudge["category"]>("roast");
 
 	// Log workout form state
 	const [logDuration, setLogDuration] = useState(60);
@@ -216,23 +282,28 @@ export function Fitness() {
 	const [checkAlcohol, setCheckAlcohol] = useState(false);
 	const [checkNotes, setCheckNotes] = useState("");
 
-	const routines = user === "jonah" ? JONAH_ROUTINES : JULIAN_ROUTINES;
-	const todayRoutine = routines.find((r) => r.day === dayOfWeek);
+	const myRoutines = user === "jonah" ? JONAH_ROUTINES : JULIAN_ROUTINES;
+	const viewingRoutines = viewingUser === "jonah" ? JONAH_ROUTINES : JULIAN_ROUTINES;
+	const todayRoutine = myRoutines.find((r) => r.day === dayOfWeek);
 
 	const loadData = useCallback(async () => {
 		try {
-			const [water, checkIn, weights, logs, history] = await Promise.all([
+			const [water, checkIn, weights, logs, history, myNudges, unread] = await Promise.all([
 				getWaterLog(user!, today),
 				getDailyCheckIn(user!, today),
 				getWeighIns(user!),
 				getWorkoutLogs({ user: user! }),
 				getCheckInHistory(user!),
+				getNudges(user!),
+				getUnreadNudgeCount(user!),
 			]);
 			setWaterLog(water);
 			setTodayCheckIn(checkIn);
 			setWeighIns(weights);
 			setWorkoutLogs(logs);
 			setCheckInHistory(history);
+			setNudges(myNudges);
+			setUnreadCount(unread);
 		} finally {
 			setLoading(false);
 		}
@@ -242,12 +313,42 @@ export function Fitness() {
 		loadData();
 	}, [loadData]);
 
+	// Poll for new nudges every 30s
+	useEffect(() => {
+		const interval = setInterval(async () => {
+			const count = await getUnreadNudgeCount(user!);
+			setUnreadCount(count);
+		}, 30000);
+		return () => clearInterval(interval);
+	}, [user]);
+
 	useEffect(() => {
 		const interval = setInterval(() => {
 			setTipIndex((i) => (i + 1) % NUTRITION_TIPS.length);
 		}, 8000);
 		return () => clearInterval(interval);
 	}, []);
+
+	const handleSendNudge = async (message: string, category: FitnessNudge["category"]) => {
+		await createNudge({
+			from_user: user!,
+			to_user: partner,
+			message,
+			category,
+		});
+		setCustomNudge("");
+		setShowNudgeComposer(false);
+	};
+
+	const handleOpenNudges = async () => {
+		setShowNudges(!showNudges);
+		if (!showNudges && unreadCount > 0) {
+			await markNudgesRead(user!);
+			setUnreadCount(0);
+			const updated = await getNudges(user!);
+			setNudges(updated);
+		}
+	};
 
 	const handleWater = async (delta: number) => {
 		const current = waterLog?.glasses ?? 0;
@@ -337,17 +438,152 @@ export function Fitness() {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div>
-				<h1 className="text-2xl font-bold flex items-center gap-2">
-					<Dumbbell className="w-6 h-6 text-primary" />
-					Fitness Tracker
-				</h1>
-				<p className="text-sm text-muted-foreground mt-1">
-					{user === "jonah"
-						? "6'0\" · Goal: 193 lbs · Lose belly fat · Keep it sustainable"
-						: "Julian's fitness dashboard"}
-				</p>
+			<div className="flex items-start justify-between">
+				<div>
+					<h1 className="text-2xl font-bold flex items-center gap-2">
+						<Dumbbell className="w-6 h-6 text-primary" />
+						Fitness Tracker
+					</h1>
+					<p className="text-sm text-muted-foreground mt-1">
+						{user === "jonah"
+							? "6'0\" · Goal: 193 lbs · Lose belly fat · Keep it sustainable"
+							: "Julian's fitness dashboard"}
+					</p>
+				</div>
+				<button
+					onClick={handleOpenNudges}
+					className="relative p-2 rounded-md border border-border hover:bg-accent transition-colors"
+				>
+					<MessageCircle className="w-5 h-5" />
+					{unreadCount > 0 && (
+						<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+							{unreadCount}
+						</span>
+					)}
+				</button>
 			</div>
+
+			{/* Nudge Inbox */}
+			{showNudges && (
+				<div className="bg-card border border-border rounded-lg overflow-hidden">
+					<div className="px-4 py-3 border-b border-border flex items-center justify-between">
+						<h2 className="font-semibold flex items-center gap-2">
+							<MessageCircle className="w-4 h-4" />
+							Messages from {partner}
+						</h2>
+						<button
+							onClick={() => setShowNudgeComposer(!showNudgeComposer)}
+							className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+						>
+							Roast {partner}
+						</button>
+					</div>
+
+					{/* Nudge Composer */}
+					{showNudgeComposer && (
+						<div className="px-4 py-3 border-b border-border bg-muted/30 space-y-3">
+							{/* Category tabs */}
+							<div className="flex gap-1 flex-wrap">
+								{NUDGE_PRESETS.map((preset) => (
+									<button
+										key={preset.category}
+										onClick={() => setNudgeCategory(preset.category)}
+										className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors capitalize ${
+											nudgeCategory === preset.category
+												? "bg-primary text-primary-foreground"
+												: "bg-background border border-border hover:bg-accent"
+										}`}
+									>
+										{preset.category === "water" ? "💧 Water" :
+										 preset.category === "workout" ? "💪 Workout" :
+										 preset.category === "praise" ? "👑 Praise" : "🔥 Roast"}
+									</button>
+								))}
+								<button
+									onClick={() => setNudgeCategory("custom")}
+									className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+										nudgeCategory === "custom"
+											? "bg-primary text-primary-foreground"
+											: "bg-background border border-border hover:bg-accent"
+									}`}
+								>
+									✏️ Custom
+								</button>
+							</div>
+
+							{/* Pre-loaded messages */}
+							{nudgeCategory !== "custom" && (
+								<div className="space-y-1.5">
+									{NUDGE_PRESETS.find((p) => p.category === nudgeCategory)?.messages.map((msg, i) => (
+										<button
+											key={i}
+											onClick={() => handleSendNudge(msg, nudgeCategory)}
+											className="w-full text-left px-3 py-2 rounded-md text-sm bg-background border border-border hover:bg-accent hover:border-primary/30 transition-colors flex items-center justify-between gap-2"
+										>
+											<span>{msg}</span>
+											<Send className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+										</button>
+									))}
+								</div>
+							)}
+
+							{/* Custom message */}
+							{nudgeCategory === "custom" && (
+								<div className="flex gap-2">
+									<input
+										type="text"
+										value={customNudge}
+										onChange={(e) => setCustomNudge(e.target.value)}
+										placeholder={`Say something terrible to ${partner}...`}
+										className="flex-1 px-3 py-2 rounded-md border border-border bg-background text-sm"
+										onKeyDown={(e) => {
+											if (e.key === "Enter" && customNudge.trim()) {
+												handleSendNudge(customNudge.trim(), "custom");
+											}
+										}}
+									/>
+									<button
+										onClick={() => customNudge.trim() && handleSendNudge(customNudge.trim(), "custom")}
+										disabled={!customNudge.trim()}
+										className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-30 transition-colors"
+									>
+										<Send className="w-4 h-4" />
+									</button>
+								</div>
+							)}
+						</div>
+					)}
+
+					{/* Nudge list */}
+					{nudges.length > 0 ? (
+						<div className="divide-y divide-border max-h-64 overflow-y-auto">
+							{nudges.map((nudge) => (
+								<div
+									key={nudge.id}
+									className={`px-4 py-3 ${!nudge.read ? "bg-primary/5" : ""}`}
+								>
+									<div className="flex items-start justify-between gap-2">
+										<p className="text-sm font-medium">{nudge.message}</p>
+										<span className="text-xs text-muted-foreground flex-shrink-0">
+											{timeAgo(nudge.created_at)}
+										</span>
+									</div>
+									<p className="text-xs text-muted-foreground mt-0.5 capitalize">
+										{nudge.category === "water" ? "💧" :
+										 nudge.category === "workout" ? "💪" :
+										 nudge.category === "praise" ? "👑" : "🔥"}{" "}
+										{nudge.category} from {nudge.from_user}
+									</p>
+								</div>
+							))}
+						</div>
+					) : (
+						<div className="px-4 py-6 text-center text-sm text-muted-foreground">
+							No messages yet. {partner} is slacking on the trash talk.
+						</div>
+					)}
+				</div>
+			)}
 
 			{/* Quick Stats Row */}
 			<div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -762,14 +998,36 @@ export function Fitness() {
 
 			{/* Weekly Routine */}
 			<div className="bg-card border border-border rounded-lg overflow-hidden">
-				<div className="px-4 py-3 border-b border-border">
+				<div className="px-4 py-3 border-b border-border flex items-center justify-between">
 					<h2 className="font-semibold flex items-center gap-2">
 						<Dumbbell className="w-5 h-5 text-primary" />
 						Weekly Routine
 					</h2>
+					<div className="flex bg-muted rounded-md p-0.5">
+						<button
+							onClick={() => setViewingUser("jonah")}
+							className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+								viewingUser === "jonah"
+									? "bg-primary text-primary-foreground"
+									: "text-muted-foreground hover:text-foreground"
+							}`}
+						>
+							Jonah
+						</button>
+						<button
+							onClick={() => setViewingUser("julian")}
+							className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+								viewingUser === "julian"
+									? "bg-primary text-primary-foreground"
+									: "text-muted-foreground hover:text-foreground"
+							}`}
+						>
+							Julian
+						</button>
+					</div>
 				</div>
 				<div className="divide-y divide-border">
-					{routines.map((routine) => (
+					{viewingRoutines.map((routine) => (
 						<div key={routine.day}>
 							<button
 								onClick={() => setExpandedDay(expandedDay === routine.day ? null : routine.day)}

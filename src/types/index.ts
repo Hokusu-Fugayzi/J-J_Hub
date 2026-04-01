@@ -186,6 +186,16 @@ export interface WeighIn {
 	created_at: string;
 }
 
+export interface FitnessNudge {
+	id: string;
+	from_user: User;
+	to_user: User;
+	message: string;
+	category: "water" | "workout" | "praise" | "roast" | "custom";
+	read: boolean;
+	created_at: string;
+}
+
 // ── Fun ──
 
 export interface MoodStatus {

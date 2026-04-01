@@ -16,6 +16,7 @@ import type {
 	WaterLog,
 	DailyCheckIn,
 	WeighIn,
+	FitnessNudge,
 } from "@/types";
 
 // ── Projects ──
@@ -675,5 +676,54 @@ export async function createWeighIn(
 
 export async function deleteWeighIn(id: string): Promise<void> {
 	const { error } = await supabase!.from("weigh_ins").delete().eq("id", id);
+	if (error) throw error;
+}
+
+// ── Fitness Nudges ──
+
+export async function getNudges(
+	toUser: User,
+	limit = 20,
+): Promise<FitnessNudge[]> {
+	if (!isSupabaseConfigured) return [];
+	const { data, error } = await supabase!
+		.from("fitness_nudges")
+		.select("*")
+		.eq("to_user", toUser)
+		.order("created_at", { ascending: false })
+		.limit(limit);
+	if (error) throw error;
+	return data as FitnessNudge[];
+}
+
+export async function getUnreadNudgeCount(toUser: User): Promise<number> {
+	if (!isSupabaseConfigured) return 0;
+	const { count, error } = await supabase!
+		.from("fitness_nudges")
+		.select("*", { count: "exact", head: true })
+		.eq("to_user", toUser)
+		.eq("read", false);
+	if (error) throw error;
+	return count ?? 0;
+}
+
+export async function createNudge(
+	nudge: Omit<FitnessNudge, "id" | "read" | "created_at">,
+): Promise<FitnessNudge> {
+	const { data, error } = await supabase!
+		.from("fitness_nudges")
+		.insert({ ...nudge, read: false })
+		.select()
+		.single();
+	if (error) throw error;
+	return data as FitnessNudge;
+}
+
+export async function markNudgesRead(toUser: User): Promise<void> {
+	const { error } = await supabase!
+		.from("fitness_nudges")
+		.update({ read: true })
+		.eq("to_user", toUser)
+		.eq("read", false);
 	if (error) throw error;
 }
