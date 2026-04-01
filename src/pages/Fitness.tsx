@@ -445,7 +445,7 @@ export function Fitness() {
 						Fitness Tracker
 					</h1>
 					<p className="text-sm text-muted-foreground mt-1">
-						{user === "jonah"
+						{viewingUser === "jonah"
 							? "6'0\" · Goal: 193 lbs · Lose belly fat · Keep it sustainable"
 							: "Julian's fitness dashboard"}
 					</p>
@@ -460,6 +460,30 @@ export function Fitness() {
 							{unreadCount}
 						</span>
 					)}
+				</button>
+			</div>
+
+			{/* User Toggle */}
+			<div className="flex bg-muted rounded-lg p-1">
+				<button
+					onClick={() => setViewingUser("jonah")}
+					className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+						viewingUser === "jonah"
+							? "bg-primary text-primary-foreground shadow-sm"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+				>
+					Jonah's Plan
+				</button>
+				<button
+					onClick={() => setViewingUser("julian")}
+					className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+						viewingUser === "julian"
+							? "bg-primary text-primary-foreground shadow-sm"
+							: "text-muted-foreground hover:text-foreground"
+					}`}
+				>
+					Julian's Plan
 				</button>
 			</div>
 
@@ -998,33 +1022,11 @@ export function Fitness() {
 
 			{/* Weekly Routine */}
 			<div className="bg-card border border-border rounded-lg overflow-hidden">
-				<div className="px-4 py-3 border-b border-border flex items-center justify-between">
+				<div className="px-4 py-3 border-b border-border">
 					<h2 className="font-semibold flex items-center gap-2">
 						<Dumbbell className="w-5 h-5 text-primary" />
-						Weekly Routine
+						{viewingUser === user ? "Your Weekly Routine" : `${viewingUser}'s Weekly Routine`}
 					</h2>
-					<div className="flex bg-muted rounded-md p-0.5">
-						<button
-							onClick={() => setViewingUser("jonah")}
-							className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-								viewingUser === "jonah"
-									? "bg-primary text-primary-foreground"
-									: "text-muted-foreground hover:text-foreground"
-							}`}
-						>
-							Jonah
-						</button>
-						<button
-							onClick={() => setViewingUser("julian")}
-							className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-								viewingUser === "julian"
-									? "bg-primary text-primary-foreground"
-									: "text-muted-foreground hover:text-foreground"
-							}`}
-						>
-							Julian
-						</button>
-					</div>
 				</div>
 				<div className="divide-y divide-border">
 					{viewingRoutines.map((routine) => (
