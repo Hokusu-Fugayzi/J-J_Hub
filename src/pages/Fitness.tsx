@@ -189,6 +189,19 @@ const NUTRITION_TIPS = [
 	"Swap one weeknight whisky for herbal tea — small win, big compounding effect",
 ];
 
+const WATER_ROASTS = [
+	"DRINK WATER. Your organs are begging.",
+	"Hey dumbass, it's been an hour. Drink some water.",
+	"Your body is 60% water and 100% dehydrated right now. Fix it.",
+	"Another hour, another glass. Don't be a raisin.",
+	"Water. Now. I'm not asking.",
+	"Your kidneys just filed a complaint. Hydrate.",
+	"That headache is your brain crying for water, genius.",
+	"One glass. Right now. Stop scrolling.",
+	"You've had more screen time than water today. Pathetic.",
+	"If you were a plant you'd be dead by now. DRINK.",
+];
+
 // Pre-loaded nudge messages — the ruder the better
 const NUDGE_PRESETS: { category: FitnessNudge["category"]; messages: string[] }[] = [
 	{
@@ -358,6 +371,30 @@ export function Fitness() {
 		}, 15000);
 		return () => clearInterval(interval);
 	}, [user]);
+
+	// Hourly water reminders (7 AM – 9 PM)
+	useEffect(() => {
+		let lastNotifiedHour = -1;
+		const checkWaterReminder = () => {
+			const now = new Date();
+			const hour = now.getHours();
+			const minute = now.getMinutes();
+			// Fire within the first 2 minutes of each hour, 7 AM to 9 PM
+			if (hour >= 7 && hour <= 21 && minute <= 1 && hour !== lastNotifiedHour) {
+				const currentGlasses = waterLog?.glasses ?? 0;
+				if (currentGlasses < WATER_GOAL) {
+					const roast = WATER_ROASTS[Math.floor(Math.random() * WATER_ROASTS.length)];
+					fireNotification("Water Reminder", roast);
+					lastNotifiedHour = hour;
+				}
+			}
+		};
+		// Check every 60 seconds
+		const interval = setInterval(checkWaterReminder, 60000);
+		// Also check immediately on mount
+		checkWaterReminder();
+		return () => clearInterval(interval);
+	}, [waterLog]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
