@@ -13,6 +13,7 @@ import { Pipeline } from "@/pages/Pipeline";
 import { Sprints } from "@/pages/Sprints";
 import { Board } from "@/pages/Board";
 import { Standups } from "@/pages/Standups";
+import { Fitness } from "@/pages/Fitness";
 
 function ProtectedRoutes() {
 	const { user } = useAuth();
@@ -44,6 +45,7 @@ export default function App() {
 						<Route path="/deals" element={<Deals />} />
 						<Route path="/pipeline" element={<Pipeline />} />
 						<Route path="/notes" element={<Notes />} />
+						<Route path="/fitness" element={<Fitness />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

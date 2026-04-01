@@ -142,6 +142,55 @@ create table moods (
   unique("user", date)
 );
 
+-- Fitness: Workout Logs
+create table workout_logs (
+  id uuid primary key default uuid_generate_v4(),
+  "user" text not null check ("user" in ('jonah', 'julian')),
+  date date not null default current_date,
+  routine_day text not null,
+  exercises_completed jsonb not null default '[]',
+  duration_minutes integer not null default 0,
+  energy_level integer not null default 3 check (energy_level between 1 and 5),
+  notes text not null default '',
+  created_at timestamptz not null default now()
+);
+
+-- Fitness: Water Logs
+create table water_logs (
+  id uuid primary key default uuid_generate_v4(),
+  "user" text not null check ("user" in ('jonah', 'julian')),
+  date date not null default current_date,
+  glasses integer not null default 0,
+  goal integer not null default 12,
+  created_at timestamptz not null default now(),
+  unique("user", date)
+);
+
+-- Fitness: Daily Check-Ins
+create table daily_checkins (
+  id uuid primary key default uuid_generate_v4(),
+  "user" text not null check ("user" in ('jonah', 'julian')),
+  date date not null default current_date,
+  weight numeric,
+  sleep_hours numeric,
+  soreness integer check (soreness between 1 and 5),
+  worked_out boolean not null default false,
+  hit_water_goal boolean not null default false,
+  alcohol boolean not null default false,
+  notes text not null default '',
+  created_at timestamptz not null default now(),
+  unique("user", date)
+);
+
+-- Fitness: Weigh-Ins
+create table weigh_ins (
+  id uuid primary key default uuid_generate_v4(),
+  "user" text not null check ("user" in ('jonah', 'julian')),
+  date date not null default current_date,
+  weight numeric not null,
+  created_at timestamptz not null default now()
+);
+
 -- Indexes
 create index tasks_project_id_idx on tasks(project_id);
 create index tasks_status_idx on tasks(status);
@@ -153,3 +202,7 @@ create index standups_date_idx on standups(date);
 create index deals_stage_idx on deals(stage);
 create index deals_contact_id_idx on deals(contact_id);
 create index contact_activities_contact_id_idx on contact_activities(contact_id);
+create index workout_logs_user_date_idx on workout_logs("user", date);
+create index water_logs_user_date_idx on water_logs("user", date);
+create index daily_checkins_user_date_idx on daily_checkins("user", date);
+create index weigh_ins_user_date_idx on weigh_ins("user", date);

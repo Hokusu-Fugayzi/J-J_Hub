@@ -13,6 +13,7 @@ import {
 	DollarSign,
 	GitBranch,
 	StickyNote,
+	Dumbbell,
 	LogOut,
 	Menu,
 	X,
@@ -47,6 +48,10 @@ const navSections = [
 		],
 	},
 	{
+		label: "Life",
+		items: [{ to: "/fitness", icon: Dumbbell, label: "Fitness" }],
+	},
+	{
 		label: "Other",
 		items: [{ to: "/notes", icon: StickyNote, label: "Notes" }],
 	},
@@ -58,7 +63,7 @@ const mobileNav = [
 	{ to: "/board", icon: Columns3, label: "Board" },
 	{ to: "/calendar", icon: CalendarDays, label: "Calendar" },
 	{ to: "/deals", icon: DollarSign, label: "Deals" },
-	{ to: "/news", icon: Newspaper, label: "News" },
+	{ to: "/fitness", icon: Dumbbell, label: "Fitness" },
 ];
 
 export function Layout() {

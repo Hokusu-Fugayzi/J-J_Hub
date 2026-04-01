@@ -125,6 +125,67 @@ export interface NewsPost {
 	updated_at: string;
 }
 
+// ── Fitness ──
+
+export interface WorkoutRoutine {
+	user: User;
+	day: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+	name: string;
+	focus: string;
+	exercises: WorkoutExercise[];
+}
+
+export interface WorkoutExercise {
+	name: string;
+	sets: number;
+	reps: string;
+	rest: string;
+	notes?: string;
+}
+
+export interface WorkoutLog {
+	id: string;
+	user: User;
+	date: string;
+	routine_day: string;
+	exercises_completed: string[];
+	duration_minutes: number;
+	energy_level: 1 | 2 | 3 | 4 | 5;
+	notes: string;
+	created_at: string;
+}
+
+export interface WaterLog {
+	id: string;
+	user: User;
+	date: string;
+	glasses: number;
+	goal: number;
+	created_at: string;
+}
+
+export interface DailyCheckIn {
+	id: string;
+	user: User;
+	date: string;
+	weight: number | null;
+	sleep_hours: number | null;
+	soreness: 1 | 2 | 3 | 4 | 5 | null;
+	worked_out: boolean;
+	hit_water_goal: boolean;
+	alcohol: boolean;
+	notes: string;
+	created_at: string;
+}
+
+export interface WeighIn {
+	id: string;
+	user: User;
+	date: string;
+	weight: number;
+	created_at: string;
+}
+
 // ── Fun ──
 
 export interface MoodStatus {

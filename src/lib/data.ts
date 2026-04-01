@@ -12,6 +12,10 @@ import type {
 	ContactActivity,
 	NewsPost,
 	MoodStatus,
+	WorkoutLog,
+	WaterLog,
+	DailyCheckIn,
+	WeighIn,
 } from "@/types";
 
 // ── Projects ──
@@ -508,4 +512,168 @@ export async function setMood(
 		.single();
 	if (error) throw error;
 	return data as MoodStatus;
+}
+
+// ── Workout Logs ──
+
+export async function getWorkoutLogs(filters?: {
+	user?: User;
+	date?: string;
+}): Promise<WorkoutLog[]> {
+	if (!isSupabaseConfigured) return [];
+	let query = supabase!
+		.from("workout_logs")
+		.select("*")
+		.order("date", { ascending: false });
+	if (filters?.user) query = query.eq("user", filters.user);
+	if (filters?.date) query = query.eq("date", filters.date);
+	const { data, error } = await query;
+	if (error) throw error;
+	return data as WorkoutLog[];
+}
+
+export async function createWorkoutLog(
+	log: Omit<WorkoutLog, "id" | "created_at">,
+): Promise<WorkoutLog> {
+	const { data, error } = await supabase!
+		.from("workout_logs")
+		.insert(log)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as WorkoutLog;
+}
+
+export async function deleteWorkoutLog(id: string): Promise<void> {
+	const { error } = await supabase!.from("workout_logs").delete().eq("id", id);
+	if (error) throw error;
+}
+
+// ── Water Logs ──
+
+export async function getWaterLog(
+	user: User,
+	date: string,
+): Promise<WaterLog | null> {
+	if (!isSupabaseConfigured) return null;
+	const { data, error } = await supabase!
+		.from("water_logs")
+		.select("*")
+		.eq("user", user)
+		.eq("date", date)
+		.maybeSingle();
+	if (error) throw error;
+	return data as WaterLog | null;
+}
+
+export async function upsertWaterLog(
+	log: Omit<WaterLog, "id" | "created_at">,
+): Promise<WaterLog> {
+	const existing = await getWaterLog(log.user, log.date);
+	if (existing) {
+		const { data, error } = await supabase!
+			.from("water_logs")
+			.update({ glasses: log.glasses })
+			.eq("id", existing.id)
+			.select()
+			.single();
+		if (error) throw error;
+		return data as WaterLog;
+	}
+	const { data, error } = await supabase!
+		.from("water_logs")
+		.insert(log)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as WaterLog;
+}
+
+// ── Daily Check-Ins ──
+
+export async function getDailyCheckIn(
+	user: User,
+	date: string,
+): Promise<DailyCheckIn | null> {
+	if (!isSupabaseConfigured) return null;
+	const { data, error } = await supabase!
+		.from("daily_checkins")
+		.select("*")
+		.eq("user", user)
+		.eq("date", date)
+		.maybeSingle();
+	if (error) throw error;
+	return data as DailyCheckIn | null;
+}
+
+export async function getCheckInHistory(
+	user: User,
+	limit = 30,
+): Promise<DailyCheckIn[]> {
+	if (!isSupabaseConfigured) return [];
+	const { data, error } = await supabase!
+		.from("daily_checkins")
+		.select("*")
+		.eq("user", user)
+		.order("date", { ascending: false })
+		.limit(limit);
+	if (error) throw error;
+	return data as DailyCheckIn[];
+}
+
+export async function upsertDailyCheckIn(
+	checkIn: Omit<DailyCheckIn, "id" | "created_at">,
+): Promise<DailyCheckIn> {
+	const existing = await getDailyCheckIn(checkIn.user, checkIn.date);
+	if (existing) {
+		const { data, error } = await supabase!
+			.from("daily_checkins")
+			.update(checkIn)
+			.eq("id", existing.id)
+			.select()
+			.single();
+		if (error) throw error;
+		return data as DailyCheckIn;
+	}
+	const { data, error } = await supabase!
+		.from("daily_checkins")
+		.insert(checkIn)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as DailyCheckIn;
+}
+
+// ── Weigh-Ins ──
+
+export async function getWeighIns(
+	user: User,
+	limit = 30,
+): Promise<WeighIn[]> {
+	if (!isSupabaseConfigured) return [];
+	const { data, error } = await supabase!
+		.from("weigh_ins")
+		.select("*")
+		.eq("user", user)
+		.order("date", { ascending: false })
+		.limit(limit);
+	if (error) throw error;
+	return data as WeighIn[];
+}
+
+export async function createWeighIn(
+	weighIn: Omit<WeighIn, "id" | "created_at">,
+): Promise<WeighIn> {
+	const { data, error } = await supabase!
+		.from("weigh_ins")
+		.insert(weighIn)
+		.select()
+		.single();
+	if (error) throw error;
+	return data as WeighIn;
+}
+
+export async function deleteWeighIn(id: string): Promise<void> {
+	const { error } = await supabase!.from("weigh_ins").delete().eq("id", id);
+	if (error) throw error;
 }
