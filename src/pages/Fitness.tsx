@@ -238,6 +238,27 @@ const NUDGE_PRESETS: { category: FitnessNudge["category"]; messages: string[] }[
 	},
 ];
 
+function fireNotification(fromUser: string, message: string) {
+	if ("Notification" in window && Notification.permission === "granted") {
+		const title = `${fromUser} says:`;
+		const options: NotificationOptions = {
+			body: message,
+			icon: "/icon-192.png",
+			badge: "/icon-192.png",
+			tag: "fitness-nudge",
+			renotify: true,
+		};
+		// Use service worker notifications if available (works when tab is in background)
+		if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+			navigator.serviceWorker.ready.then((reg) => {
+				reg.showNotification(title, options);
+			});
+		} else {
+			new Notification(title, options);
+		}
+	}
+}
+
 export function Fitness() {
 	const { user } = useAuth();
 	const partner = user === "jonah" ? "julian" : "jonah";
@@ -313,12 +334,28 @@ export function Fitness() {
 		loadData();
 	}, [loadData]);
 
-	// Poll for new nudges every 30s
+	// Request notification permission on mount
 	useEffect(() => {
+		if ("Notification" in window && Notification.permission === "default") {
+			Notification.requestPermission();
+		}
+	}, []);
+
+	// Poll for new nudges every 30s and send browser notification
+	useEffect(() => {
+		let prevCount = unreadCount;
 		const interval = setInterval(async () => {
 			const count = await getUnreadNudgeCount(user!);
+			// New nudge arrived — fire a notification
+			if (count > prevCount && count > 0) {
+				const latest = await getNudges(user!, 1);
+				if (latest.length > 0) {
+					fireNotification(latest[0].from_user, latest[0].message);
+				}
+			}
+			prevCount = count;
 			setUnreadCount(count);
-		}, 30000);
+		}, 15000);
 		return () => clearInterval(interval);
 	}, [user]);
 
