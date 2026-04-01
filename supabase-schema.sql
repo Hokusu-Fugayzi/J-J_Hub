@@ -11,6 +11,7 @@ create table projects (
   description text not null default '',
   status text not null default 'active' check (status in ('active', 'paused', 'completed')),
   assigned_to text not null default 'both' check (assigned_to in ('jonah', 'julian', 'both')),
+  personal boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

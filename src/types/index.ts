@@ -6,6 +6,7 @@ export interface Project {
 	description: string;
 	status: "active" | "paused" | "completed";
 	assigned_to: User | "both";
+	personal: boolean;
 	created_at: string;
 	updated_at: string;
 }

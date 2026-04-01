@@ -9,7 +9,7 @@ import {
 import { capitalize, timeAgo } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import type { Project, Task } from "@/types";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Lock } from "lucide-react";
 
 export function Projects() {
 	const { user } = useAuth();
@@ -31,6 +31,11 @@ export function Projects() {
 	useEffect(() => {
 		load();
 	}, []);
+
+	// Hide other user's personal projects
+	const visibleProjects = projects.filter(
+		(p) => !p.personal || p.assigned_to === user || p.assigned_to === "both",
+	);
 
 	const taskCountFor = (projectId: string) =>
 		tasks.filter(
@@ -88,7 +93,7 @@ export function Projects() {
 			)}
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{projects.map((project) => (
+				{visibleProjects.map((project) => (
 					<div
 						key={project.id}
 						className="border border-border rounded-lg p-4"
@@ -118,8 +123,13 @@ export function Projects() {
 								</button>
 							</div>
 						</div>
-						<div className="flex items-center gap-3 text-xs text-muted-foreground">
+						<div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
 							<StatusBadge status={project.status} />
+							{project.personal && (
+								<span className="flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+									<Lock className="w-3 h-3" /> Personal
+								</span>
+							)}
 							<span>{capitalize(project.assigned_to)}</span>
 							<span>{taskCountFor(project.id)} open tasks</span>
 							<span>{timeAgo(project.updated_at)}</span>
@@ -160,6 +170,7 @@ function ProjectForm({
 	const [assignedTo, setAssignedTo] = useState<string>(
 		project?.assigned_to || currentUser,
 	);
+	const [personal, setPersonal] = useState(project?.personal ?? false);
 	const [saving, setSaving] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -171,6 +182,7 @@ function ProjectForm({
 				description,
 				status: status as Project["status"],
 				assigned_to: assignedTo as Project["assigned_to"],
+				personal,
 			});
 		} else {
 			await createProject({
@@ -178,6 +190,7 @@ function ProjectForm({
 				description,
 				status: status as Project["status"],
 				assigned_to: assignedTo as Project["assigned_to"],
+				personal,
 			});
 		}
 		onSave();
@@ -230,6 +243,25 @@ function ProjectForm({
 					<option value="both">Both</option>
 				</select>
 			</div>
+			<label className="flex items-center gap-2 cursor-pointer">
+				<button
+					type="button"
+					onClick={() => setPersonal(!personal)}
+					className={`w-9 h-5 rounded-full transition-colors relative ${
+						personal ? "bg-purple-500" : "bg-gray-300"
+					}`}
+				>
+					<span
+						className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+							personal ? "translate-x-4" : ""
+						}`}
+					/>
+				</button>
+				<span className="text-sm flex items-center gap-1.5">
+					<Lock className="w-3.5 h-3.5 text-muted-foreground" />
+					Personal — only visible to {assignedTo === "both" ? "you" : assignedTo}
+				</span>
+			</label>
 			<div className="flex gap-2 justify-end">
 				<button
 					type="button"

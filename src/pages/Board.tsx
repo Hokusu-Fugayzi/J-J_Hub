@@ -97,7 +97,20 @@ export function Board() {
 	const projectName = (id: string | null) =>
 		id ? projects.find((p) => p.id === id)?.name : null;
 
+	// Hide tasks that belong to someone else's personal project
+	const personalProjectIds = new Set(
+		projects
+			.filter((p) => p.personal && p.assigned_to !== user && p.assigned_to !== "both")
+			.map((p) => p.id),
+	);
+
+	const visibleProjects = projects.filter(
+		(p) => !p.personal || p.assigned_to === user || p.assigned_to === "both",
+	);
+
 	const filtered = tasks.filter((t) => {
+		// Hide tasks from other user's personal projects
+		if (t.project_id && personalProjectIds.has(t.project_id)) return false;
 		if (filterSprint !== "all") {
 			if (filterSprint === "none" && t.sprint_id) return false;
 			if (filterSprint !== "none" && t.sprint_id !== filterSprint) return false;
@@ -160,9 +173,9 @@ export function Board() {
 					>
 						<option value="all">All projects</option>
 						<option value="none">No project</option>
-						{projects.map((p) => (
+						{visibleProjects.map((p) => (
 							<option key={p.id} value={p.id}>
-								{p.name}
+								{p.name}{p.personal ? " (Personal)" : ""}
 							</option>
 						))}
 					</select>
@@ -183,9 +196,9 @@ export function Board() {
 			</div>
 
 			{/* Project color legend */}
-			{projects.length > 0 && (
+			{visibleProjects.length > 0 && (
 				<div className="flex flex-wrap gap-3 mb-4 text-xs">
-					{projects.map((p) => (
+					{visibleProjects.map((p) => (
 						<div key={p.id} className="flex items-center gap-1.5">
 							<div
 								className={`w-2.5 h-2.5 rounded-full ${getProjectDot(p.id)}`}
@@ -200,7 +213,7 @@ export function Board() {
 			{editingTask && (
 				<EditTaskModal
 					task={editingTask}
-					projects={projects}
+					projects={visibleProjects}
 					sprints={sprints}
 					onSave={() => {
 						setEditingTask(null);
@@ -253,7 +266,7 @@ export function Board() {
 							{addingTo === status && (
 								<QuickAddTask
 									status={status}
-									projects={projects}
+									projects={visibleProjects}
 									sprints={sprints}
 									currentUser={user!}
 									activeSprintFilter={filterSprint}
