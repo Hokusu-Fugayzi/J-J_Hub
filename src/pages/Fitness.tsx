@@ -14,18 +14,15 @@ import {
 import { toDateString } from "@/lib/utils";
 import type {
 	WorkoutRoutine,
-	WorkoutExercise,
 	WorkoutLog,
 	WaterLog,
 	DailyCheckIn,
 	WeighIn,
-	User,
 } from "@/types";
 import {
 	Dumbbell,
 	Droplets,
 	Scale,
-	Moon,
 	Flame,
 	ChevronDown,
 	ChevronUp,
