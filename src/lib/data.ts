@@ -21,6 +21,26 @@ import type {
 
 // ── Projects ──
 
+export async function ensurePersonalProject(user: User): Promise<void> {
+	if (!isSupabaseConfigured) return;
+	const { data } = await supabase!
+		.from("projects")
+		.select("id")
+		.eq("personal", true)
+		.eq("assigned_to", user)
+		.limit(1);
+	if (data && data.length > 0) return;
+	await supabase!
+		.from("projects")
+		.insert({
+			name: `${user.charAt(0).toUpperCase() + user.slice(1)}'s Personal`,
+			description: "Private tasks — only visible to you",
+			status: "active",
+			assigned_to: user,
+			personal: true,
+		});
+}
+
 export async function getProjects(): Promise<Project[]> {
 	if (isSupabaseConfigured) {
 		const { data, error } = await supabase!

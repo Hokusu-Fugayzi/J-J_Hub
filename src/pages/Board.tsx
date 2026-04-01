@@ -6,6 +6,7 @@ import {
 	deleteTask,
 	getProjects,
 	getSprints,
+	ensurePersonalProject,
 } from "@/lib/data";
 import { capitalize } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -63,7 +64,8 @@ export function Board() {
 	const [editingTask, setEditingTask] = useState<Task | null>(null);
 	const [showAllDone, setShowAllDone] = useState(false);
 
-	const load = () => {
+	const load = async () => {
+		await ensurePersonalProject(user!);
 		Promise.all([getTasks(), getProjects(), getSprints()])
 			.then(([t, p, s]) => {
 				setTasks(t);
@@ -94,8 +96,11 @@ export function Board() {
 		return idx !== undefined ? PROJECT_DOT_COLORS[idx] : "bg-gray-300";
 	};
 
-	const projectName = (id: string | null) =>
-		id ? projects.find((p) => p.id === id)?.name : null;
+	const projectName = (id: string | null) => {
+		if (!id) return null;
+		const p = projects.find((p) => p.id === id);
+		return p ? (p.personal ? `🔒 ${p.name}` : p.name) : null;
+	};
 
 	// Hide tasks that belong to someone else's personal project
 	const personalProjectIds = new Set(
