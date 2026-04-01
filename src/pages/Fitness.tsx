@@ -259,7 +259,6 @@ function fireNotification(fromUser: string, message: string) {
 			icon: "/icon-192.png",
 			badge: "/icon-192.png",
 			tag: "fitness-nudge",
-			renotify: true,
 		};
 		// Use service worker notifications if available (works when tab is in background)
 		if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
